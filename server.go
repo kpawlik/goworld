@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	QUIT = 400
-	RUN  = 200
+	Version = "0.1-2a"
 )
 
 // StartServer initialize workers and starts HTTP server

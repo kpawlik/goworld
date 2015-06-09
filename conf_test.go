@@ -19,14 +19,6 @@ var (
 		"port": 4001,
 		"host": "localhost",
 		"name": "w2"
-	}],
-	"urls": [{
-		"path": "test",
-		"function": "test"
-	}, {
-		"path": "test2",
-		"function": "test2"
-
 	}]
 }
 
@@ -35,15 +27,12 @@ var (
 
 func TestReadConfig(t *testing.T) {
 	b := []byte(testConfig)
-	c := &Conf{}
+	c := &Config{}
 	c, err := unmarshal(b)
 	if err != nil {
 		t.Errorf("Error parsing config: %v\n", err)
 	}
 	if c.Server.Port != 4000 {
 		t.Errorf("Wrong number of server port: %v\n", err)
-	}
-	if len(c.Urls) != 2 {
-		t.Errorf("Wrong number Urls\n")
 	}
 }

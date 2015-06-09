@@ -1,0 +1,103 @@
+#% text_encoding = utf8
+_package sw
+
+def_slotted_exemplar(:goworld,
+	{
+		{:name, _unset }
+	},
+	{:user_acp})
+$
+
+
+_method goworld.new(name,  exe_path, conf_path, log_path)
+	>> _clone.init(name,  exe_path, conf_path, log_path)
+_endmethod
+$
+
+_private _method goworld.init(name,  exe_path, conf_path, log_path)
+	_self.init_copy()
+	.name << name
+	.command << {write_string(exe_path,"  -n ", name, " -t worker  -c ", conf_path, " -l ", log_path )}
+	print(.command)
+	.program_ident << name
+	# First version, so min and max protocols are both zero
+	.minimum_protocol << 0
+	.maximum_protocol << 1
+	>> _self
+_endmethod
+$
+
+
+_method goworld.start()
+	write("starting workers: ", .name)
+	_protect
+		_self.lock()
+		_loop
+			_local path << _self.get_chars()
+			write("path: ", path)
+			_local vars << rope.new_from(path.split_by("/"))
+			_local dataset_name << vars.remove_first().as_symbol()
+			_local collection_name << vars.remove_first().as_symbol()
+			_local records_to_get << vars.remove_first()
+			records_to_get << integer.from_write_string(records_to_get)
+			_local collection << gis_program_manager.databases[dataset_name].collections[collection_name.as_symbol()]
+			_if records_to_get > 0
+			_then 
+				records_to_get << min(records_to_get, collection.size)
+			_else
+				records_to_get << collection.size
+			_endif 
+			_self.put_unsigned_int(records_to_get)
+			_self.put_unsigned_int(vars.size)
+			_local i << 0
+			_for rec  _over collection.fast_elements()
+			_loop
+			_if records_to_get > 0 _andif i = records_to_get  
+			_then
+				_leave 
+			_endif
+				_for var _over vars.fast_elements()
+				_loop
+					_self.put_chars(var)
+					_try _with exc
+						_self.put_chars(write_string(rec.perform(var.as_symbol())))
+						_self.flush()
+						_self.flush()						
+					_when error
+						_self.put_chars(write_string(exc))
+						_self.flush()						
+					_endtry 
+				_endloop
+				i +<< 1
+			_endloop
+		_endloop
+	_protection
+		_self.close()	
+		_self.unlock()  	# release the lock
+	_endprotect 
+_endmethod
+$
+
+
+
+
+
+_method goworld.select_protocol(number)
+	## do nothing - always 0 anyway
+_endmethod
+$
+
+
+
+_global p << _proc(name, exe, conf, log)
+				 _local pp << _proc()
+								  _import name, exe, conf, log
+								  _local g << goworld.new(name, exe, conf, log)
+								  g.start()
+							  _endproc.fork_at(light_thread.vm_priority - 1)
+			 _endproc 
+$
+
+
+
+

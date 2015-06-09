@@ -52,11 +52,11 @@ func init() {
 	} else {
 		if file, err = os.Create(logFile); err != nil {
 			panic(err)
-			return
 		}
 		log.SetOutput(file)
 	}
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.Printf("Version %s\n", goworld.Version)
 	log.Printf("Proces name: %s\n", processName)
 	log.Printf("Config file path: %s\n", configFilePath)
 	log.Printf("Server type: %s\n", serverType)

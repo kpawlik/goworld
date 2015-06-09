@@ -9,12 +9,17 @@ import (
 	"os"
 )
 
+var (
+	acp *Acp
+)
+
 // StartWorker start register structs and start RPC server
 func StartWorker(config *Config, name string, demo bool) {
 	var (
 		port       int
 		workerName string
 	)
+
 	for _, workerDef := range config.Workers {
 		if workerDef.Name == name {
 			workerName = workerDef.Name
@@ -25,8 +30,9 @@ func StartWorker(config *Config, name string, demo bool) {
 	if port == 0 && len(workerName) == 0 {
 		log.Fatalf("Error starting worker. No definition in config for name : %s\n", name)
 	}
+	acp = NewAcp(name)
 	if !demo {
-		if err := Connect(workerName, 0, 1); err != nil {
+		if err := acp.Connect(workerName, 0, 1); err != nil {
 			log.Panicf("ACP Connection error: %v\n", err)
 		}
 	}
@@ -68,16 +74,16 @@ func (t *Protocol) GetResponse(request *Request, resp *Response) error {
 
 	path := request.Path
 	log.Printf("Handle path: %s\n", path)
-	PutString(path)
+	acp.PutString(path)
 	body := []map[string]string{}
-	noOfRecs := GetShort()
-	noOfFields := GetShort()
+	noOfRecs := acp.GetUint()
+	noOfFields := acp.GetUint()
 
 	for i := 0; i < noOfRecs; i++ {
 		m := make(map[string]string)
 		for j := 0; j < noOfFields; j++ {
-			fieldName := GetString()
-			fieldValue := GetString()
+			fieldName := acp.GetString()
+			fieldValue := acp.GetString()
 			m[fieldName] = fieldValue
 		}
 		body = append(body, m)
