@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Goworld by kpawlik</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Goworld</h1>
+        <h2>Test app which allow to access Smallworld data as JSON via HTTP </h2>
+
+        <section id="downloads">
+          <a href="https://github.com/kpawlik/goworld/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/kpawlik/goworld/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/kpawlik/goworld" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>
+<a id="goworld" class="anchor" href="#goworld" aria-hidden="true"><span class="octicon octicon-link"></span></a>goworld</h1>
+
+<p>Test app which allow to access Smallworld data as JSON via HTTP </p>
+
+<h2>
+<a id="table-of-contents" class="anchor" href="#table-of-contents" aria-hidden="true"><span class="octicon octicon-link"></span></a>Table of Contents</h2>
+
+<ul>
+<li>
+<a href="#quick-start">Quick start</a>
+
+<ul>
+<li><a href="#instalation">Instalation</a></li>
+<li><a href="#compilation">Compilation</a></li>
+<li><a href="#config">Config and run</a></li>
+</ul>
+</li>
+<li><a href="#features">Features</a></li>
+</ul>
+
+<p></p><div id="quick-start"></div>
+
+<h2>
+<a id="quick-start" class="anchor" href="#quick-start" aria-hidden="true"><span class="octicon octicon-link"></span></a>Quick Start</h2>
+
+<p></p><div id="instalation"></div>
+
+<h3>
+<a id="instalation" class="anchor" href="#instalation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Instalation:</h3>
+
+<p><code>go get github.com/kpawlik/goworld</code>
+</p><div id="compilation"></div>
+
+<h3>
+<a id="compilation" class="anchor" href="#compilation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compilation</h3>
+
+<p>go to <code>GOPATH/github.com/kpawlik/goworld/goworldc</code> run:</p>
+
+<p><code>go build main.go -o c:\tmp\goworld.exe</code>
+</p><div id="config"></div>
+
+<h3>
+<a id="config-and-run" class="anchor" href="#config-and-run" aria-hidden="true"><span class="octicon octicon-link"></span></a>Config and run</h3>
+
+<ul>
+<li>Create JSON config file eg. c:\tmp\goworld.json</li>
+</ul>
+
+<pre><code>
+{
+    "server": {
+        "port": 4000
+    },
+    "workers": [{
+        "port": 4002,
+        "host": "localhost",
+        "name": "w1"
+    }, {
+        "port": 4001,
+        "host": "localhost",
+        "name": "w2"
+    }]
+}
+</code></pre>
+
+<ul>
+<li>load module from 'magik' folder to Smallworld session</li>
+<li>in Smallworld console type 
+<pre><code>
+start_goworld_worker("w1", "c:\tmp\goworld.exe", "c:\tmp\goworld.json", "c:\tmp\w1.log")
+start_goworld_worker("w2", "c:\tmp\goworld.exe", "c:\tmp\goworld.json", "c:\tmp\w2.log")
+</code></pre>
+</li>
+</ul>
+
+<blockquote>
+<p>this will start two concurent workers w1 and w2, which will communicate with HTTP server via rcp protocol on ports 4001 and 4002 on localhost.</p>
+</blockquote>
+
+<ul>
+<li>open command line and type
+<pre><code>
+c:\tmp\goworld.exe -t http -c c:\tmp\goworld.json
+</code></pre>
+</li>
+</ul>
+
+<blockquote>
+<p>this will start HTTP server on port 4000</p>
+</blockquote>
+
+<ul>
+<li>Run browser and type in address bar
+<pre><code>
+http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[NO OF RECORDS, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]
+eg.
+http://localhost:4000/gis/hotel/100/name/location
+</code></pre>
+</li>
+</ul>
+
+<p></p><div id="features"></div>
+
+<h2>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Features</h2>
+
+<ul>
+<li>Zero instalation</li>
+<li>One executable </li>
+<li>Linux/Windows support</li>
+<li>One simple config file</li>
+<li>Scalable - many ACP workers -&gt; one concurency HTTP server</li>
+<li>Many workers on single Smallworld session</li>
+<li>...</li>
+</ul>
+
+<p><em>Under construction</em></p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
