@@ -2,15 +2,28 @@
 
 Test app which allows to access Smallworld data as JSON via HTTP
 
+***
+
 ## Table of Contents
 - [Quick start](#quick-start)
-	- [Instalation](#instalation)
-	- [Compilation](#compilation)
-	- [Config and run](#config)
+ - [Prerequisites](#prerequisites)
+ - [Instalation](#instalation)
+ - [Compilation](#compilation)
+- [Example of config and run](#config)
 - [Features] (#features)
+
+***
 
 <div id='quick-start'/>
 ## Quick Start
+
+<div id='prerequisites'/>
+### Prerequisites
+Install Go SDK (or extract zip archive) and setup GOPATH
+
+[Go download](https://golang.org/dl/)
+
+[GOPATH](https://github.com/golang/go/wiki/GOPATH)
 
 <div id='instalation'/>
 ### Instalation:
@@ -23,7 +36,7 @@ go to `GOPATH/github.com/kpawlik/goworld/goworldc` run:
 
 `go build main.go -o c:\tmp\goworld.exe`
 <div id='config'/>
-### Config and run
+## Example of config and run
 
 - Create JSON config file eg. c:\tmp\goworld.json
 
@@ -64,8 +77,10 @@ c:\tmp\goworld.exe -t http -c c:\tmp\goworld.json
 <pre><code>
 http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[NO OF RECORDS, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]
 eg.
-http://localhost:4000/gis/hotel/100/name/location
+http://localhost:4000/gis/hotel/100/name/id
 </code></pre>
+
+> application will display list 100 of JSON object
 
 
 <div id='features'/>
@@ -75,8 +90,9 @@ http://localhost:4000/gis/hotel/100/name/location
 - One executable 
 - Linux/Windows support
 - One simple config file
-- Scalable - many ACP workers -> one concurency HTTP server
+- Scalable - many ACP workers -> one concurrency HTTP server
 - Many workers on single Smallworld session
+- Handles failed requests
 - ...
 
 *Under construction*
