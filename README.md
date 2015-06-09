@@ -35,6 +35,9 @@ Install Go SDK (or extract zip archive) and setup GOPATH
 go to `GOPATH/github.com/kpawlik/goworld/goworldc` run:
 
 `go build main.go -o c:\tmp\goworld.exe`
+
+***
+
 <div id='config'/>
 ## Example of config and run
 
@@ -82,6 +85,7 @@ http://localhost:4000/gis/hotel/100/name/id
 
 > application will display list 100 of JSON object
 
+***
 
 <div id='features'/>
 ## Features 
