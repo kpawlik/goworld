@@ -89,7 +89,7 @@ $
 
 
 
-_global p << _proc(name, exe, conf, log)
+_global start_goworld_worker << _proc(name, exe, conf, log)
 				 _local pp << _proc()
 								  _import name, exe, conf, log
 								  _local g << goworld.new(name, exe, conf, log)
