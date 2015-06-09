@@ -135,14 +135,34 @@ c:\tmp\goworld.exe -t http -c c:\tmp\goworld.json
 <pre><code>
 http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[NO OF RECORDS, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]
 eg.
-http://localhost:4000/gis/hotel/100/name/id
+http://localhost:4000/gis/hotel/100/id/name/address1/address2
 </code></pre>
 </li>
 </ul>
 
 <blockquote>
-<p>application will display list 100 of JSON object</p>
+<p>application will display list 100 (or less if size of collection is less then 100) of JSON object eg.</p>
 </blockquote>
+
+<pre><code>
+[
+    {
+        "address1": "154 Palad Road",
+        "address2": "Wyoming",
+        "id": "condition(does_not_understand: Object hotel133:(AAA Guest House) does not understand message id)",
+        "name": "AAA Guest House"
+    },
+    {
+        "address1": "219 Pinguin Road",
+        "address2": "Miami",
+        "id": "condition(does_not_understand: Object hotel133:(All 5 Seasons) does not understand message id)",
+        "name": "All 5 Seasons"
+    },
+    ...
+    ...
+    ...
+]
+</code></pre>
 
 <hr>
 
