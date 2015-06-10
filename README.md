@@ -68,6 +68,8 @@ Config file is a simple JSON file.
 
 `worker.name` - unique name of worker. This will be also used as a APC process name
 
+***
+
 <div id='download'/>
 ## Downloads
 
@@ -96,6 +98,7 @@ go to `GOPATH/github.com/kpawlik/goworld/goworldc` run:
 
 `go build main.go -o c:\tmp\goworld.exe`
 
+***
 
 <div id='tutorial'/>
 ## Tutorial
@@ -218,8 +221,10 @@ and build a query from `FIELD NAME` and `SEARCHED VALUE`. This will work until c
 
 
 <div id='stop'/>
-## Stop 
+### Stop 
 To stop Acp just open system Task Manager and kill all `goworld` processes.
+
+***
 
 <div id='limitations'/>
 ### Limitations
