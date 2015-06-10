@@ -22,7 +22,7 @@
       <h1>
 <a id="goworld" class="anchor" href="#goworld" aria-hidden="true"><span class="octicon octicon-link"></span></a>goworld</h1>
 
-<p>Test app which allows to access Smallworld data as JSON via HTTP</p>
+<p>Aplication which allows to access Smallworld data as JSON via HTTP</p>
 
 <hr>
 
@@ -31,26 +31,101 @@
 
 <ul>
 <li>
-<a href="#quick-start">Quick start</a>
+<a href="#about">About</a>
 
 <ul>
-<li><a href="#prerequisites">Prerequisites</a></li>
-<li><a href="#instalation">Instalation</a></li>
-<li><a href="#compilation">Compilation</a></li>
+<li><a href="#features">Features</a></li>
+<li><a href="#config-file">Config file</a></li>
 </ul>
 </li>
-<li><a href="#config">Example of config and run</a></li>
-<li><a href="#features">Features</a></li>
+<li><a href="#download">Downloads</a></li>
+<li><a href="#build">Build from sources</a></li>
+<li>
+<a href="#tutorial">Tutorial</a>
+
+<ul>
+<li><a href="#quick-start">Quick start</a></li>
+<li><a href="#protocol">Protocol</a></li>
+<li><a href="#stop">Stop</a></li>
+</ul>
+</li>
+<li><a href="#limitations">Limitations</a></li>
 </ul>
 
 <hr>
 
-<p></p><div id="quick-start"></div>
+<p></p><div id="about"></div>
 
 <h2>
-<a id="quick-start" class="anchor" href="#quick-start" aria-hidden="true"><span class="octicon octicon-link"></span></a>Quick Start</h2>
+<a id="about" class="anchor" href="#about" aria-hidden="true"><span class="octicon octicon-link"></span></a>About</h2>
 
-<p></p><div id="prerequisites"></div>
+<p>This is a simple application which show how data from Smallworld can be accessed by HTTP in JSON format. Goworld is composed of set of concurrent workers and one HTTP server. Worker communicates with Smallworld session via ACP protocol. HTTP server and workers communicates via RPC protocol. HTTP server publish data from workers as JSON.</p>
+
+<p></p><div id="features"></div>
+
+<h3>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Features</h3>
+
+<ul>
+<li>Zero instalation</li>
+<li>One executable</li>
+<li>Siple, light and fast</li>
+<li>Linux/Windows support</li>
+<li>One simple config file</li>
+<li>Scalable - many ACP workers -&gt; one concurrency HTTP server</li>
+<li>Many workers on single Smallworld session</li>
+</ul>
+
+<p></p><div id="config-file"></div>
+
+<h3>
+<a id="config-file" class="anchor" href="#config-file" aria-hidden="true"><span class="octicon octicon-link"></span></a>Config file</h3>
+
+<p>Config file is a simple JSON file.</p>
+
+<pre><code>
+{
+    "server": {
+        "port": Number
+    },
+    "workers": [
+        {
+            "port": Number,
+            "host": String,
+            "name": String
+        },
+    ...
+    ...
+    ...
+    ]
+}
+</code></pre>
+
+<p><code>server</code> - HTTP server configuration</p>
+
+<p><code>server.port</code> - HTTP server port number </p>
+
+<p><code>workers</code> - list of workers configuration obejcts</p>
+
+<p><code>worker.port</code> - port number to communication via RPC between HTTP server and worker</p>
+
+<p><code>worker.host</code> - host name, where worker is started</p>
+
+<p><code>worker.name</code> - unique name of worker. This will be also used as a APC process name</p>
+
+<p></p><div id="download"></div>
+
+<h2>
+<a id="downloads" class="anchor" href="#downloads" aria-hidden="true"><span class="octicon octicon-link"></span></a>Downloads</h2>
+
+<p><a href="https://sourceforge.net/projects/goworld/files/?source=navbar">Binaries</a></p>
+
+<p><a href="https://github.com/kpawlik/goworld">Source</a></p>
+
+<p></p><div id="build"></div>
+
+<h2>
+<a id="build-from-sources" class="anchor" href="#build-from-sources" aria-hidden="true"><span class="octicon octicon-link"></span></a>Build from sources</h2>
 
 <h3>
 <a id="prerequisites" class="anchor" href="#prerequisites" aria-hidden="true"><span class="octicon octicon-link"></span></a>Prerequisites</h3>
@@ -61,13 +136,10 @@
 
 <p><a href="https://github.com/golang/go/wiki/GOPATH">GOPATH</a></p>
 
-<p></p><div id="instalation"></div>
-
 <h3>
-<a id="instalation" class="anchor" href="#instalation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Instalation:</h3>
+<a id="instalation" class="anchor" href="#instalation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Instalation</h3>
 
-<p><code>go get github.com/kpawlik/goworld</code>
-</p><div id="compilation"></div>
+<p><code>go get github.com/kpawlik/goworld</code></p>
 
 <h3>
 <a id="compilation" class="anchor" href="#compilation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compilation</h3>
@@ -76,15 +148,19 @@
 
 <p><code>go build main.go -o c:\tmp\goworld.exe</code></p>
 
-<hr>
-
-<p></p><div id="config"></div>
+<p></p><div id="tutorial"></div>
 
 <h2>
-<a id="example-of-config-and-run" class="anchor" href="#example-of-config-and-run" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example of config and run</h2>
+<a id="tutorial" class="anchor" href="#tutorial" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tutorial</h2>
+
+<p></p><div id="quick-start"></div>
+
+<h3>
+<a id="quick-start" class="anchor" href="#quick-start" aria-hidden="true"><span class="octicon octicon-link"></span></a>Quick start</h3>
 
 <ul>
-<li>Create JSON config file eg. c:\tmp\goworld.json</li>
+<li><p>Download appropriate executable file to <code>C:\tmp\</code></p></li>
+<li><p>Create JSON config file c:\tmp\goworld.json</p></li>
 </ul>
 
 <pre><code>
@@ -105,44 +181,48 @@
 </code></pre>
 
 <ul>
-<li>load Smallworld module from 'magik' folder to Smallworld session</li>
-<li>in the Smallworld console type: 
+<li><p>load Magik source file <code>goworld.magik</code> from <code>magik</code> folder into the Smallworld session</p></li>
+<li>
+<p>in the Smallworld console type: </p>
+
 <pre><code>
 start_goworld_worker("w1", "c:\tmp\goworld.exe", "c:\tmp\goworld.json", "c:\tmp\w1.log")
+$
 start_goworld_worker("w2", "c:\tmp\goworld.exe", "c:\tmp\goworld.json", "c:\tmp\w2.log")
+$
 </code></pre>
-</li>
-</ul>
 
-<blockquote>
-<p>this, will start two concurrent workers w1 and w2, which will communicate with HTTP server via rcp protocol on ports 4001 n 4002 on localhost.</p>
-</blockquote>
+<p>this, will start two concurrent workers <code>w1</code> and <code>w2</code>, which will communicate with HTTP server via RPC protocol on ports 4001 n 4002.
+Procedure <code>start_goworld_worker</code> takes 4 parameters: </p>
 
 <ul>
-<li>open command line and type:
+<li><code>worker_name</code></li>
+<li><code>path to goworld.exe</code></li>
+<li><code>path to config file</code></li>
+<li><code>path where worker log file will be written</code></li>
+</ul>
+</li>
+<li>
+<p>in Windows command line type:</p>
+
 <pre><code>
 c:\tmp\goworld.exe -t http -c c:\tmp\goworld.json
 </code></pre>
-</li>
-</ul>
 
-<blockquote>
 <p>this, will start the HTTP server on port 4000</p>
-</blockquote>
+</li>
+<li>
+<p>start internet browser and type in address bar</p>
 
-<ul>
-<li>Run browser and type in address bar
 <pre><code>
 http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[NO OF RECORDS, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]
 eg.
 http://localhost:4000/gis/hotel/100/id/name/address1/address2
 </code></pre>
+
+<p>application will display list 100 (or less if size of collection is less then 100) of JSON object eg.</p>
 </li>
 </ul>
-
-<blockquote>
-<p>application will display list 100 (or less if size of collection is less then 100) of JSON object eg.</p>
-</blockquote>
 
 <pre><code>
 [
@@ -164,25 +244,70 @@ http://localhost:4000/gis/hotel/100/id/name/address1/address2
 ]
 </code></pre>
 
-<hr>
+<p></p><div id="protocol"></div>
 
-<p></p><div id="features"></div>
+<h3>
+<a id="protocol" class="anchor" href="#protocol" aria-hidden="true"><span class="octicon octicon-link"></span></a>Protocol</h3>
+
+<p>In current implementation the <code>goworld</code> protocol looks like this</p>
+
+<ol>
+<li>
+<p><code>goworld</code> send to magik a char vector, this is a path from http address. eg for 
+<code>http://localhost:4000/gis/hotel/100/id/name/address1/address2</code> it will be <code>gis/hotel/100/id/name/address1/address2</code>.</p>
+
+<pre><code>
+_local path </code></pre>
+</li>
+<li>
+<p>magik ACP send to goworld number of record which will be send as <code>unsigned int</code></p>
+
+<pre><code>
+_self.put_unsigned_int(records_to_get)
+</code></pre>
+</li>
+<li>
+<p>magik ACP send to goworld number of fields which will be send as <code>unsigned int</code></p>
+
+<pre><code>
+_self.put_unsigned_int(no_of_fields)
+</code></pre>
+</li>
+<li>
+<p>in the loop magik ACP sends field names and field values</p>
+
+<pre><code>
+_self.put_chars(field_name)
+_self.flush()
+_self.put_chars(field_value)
+_self.flush()
+</code></pre>
+</li>
+</ol>
+
+<p>In example magik file, path value is parsed as pattern:</p>
+
+<p><code>http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[NO OF RECORDS, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]</code></p>
+
+<p>But in your own magik class you can handle <code>path</code> value in your own way eg.</p>
+
+<p><code>http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[FIELD NAME]/[SEARCHED VALUE]</code></p>
+
+<p>and build a query from <code>FIELD NAME</code> and <code>SEARCHED VALUE</code>. This will work until communication between  goworker and magik ACP will be proceeded in accordance with the protocol.</p>
+
+<p></p><div id="stop"></div>
 
 <h2>
-<a id="features" class="anchor" href="#features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Features</h2>
+<a id="stop" class="anchor" href="#stop" aria-hidden="true"><span class="octicon octicon-link"></span></a>Stop</h2>
 
-<ul>
-<li>Zero instalation</li>
-<li>One executable </li>
-<li>Linux/Windows support</li>
-<li>One simple config file</li>
-<li>Scalable - many ACP workers -&gt; one concurrency HTTP server</li>
-<li>Many workers on single Smallworld session</li>
-<li>Handles failed requests</li>
-<li>...</li>
-</ul>
+<p>To stop Acp just open system Task Manager and kill all <code>goworld</code> processes.</p>
 
-<p><em>Under construction</em></p>
+<p></p><div id="limitations"></div>
+
+<h3>
+<a id="limitations" class="anchor" href="#limitations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations</h3>
+
+<p>Currently if you type wrong <code>dataset</code> or <code>collection</code> name in http address, magik Acp will crush and probably you need stop HTTP server before you will start it again. That is because wrong HTTP request is still pending .</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/kpawlik/goworld">Goworld</a> is maintained by <a href="https://github.com/kpawlik">kpawlik</a>.</span>
