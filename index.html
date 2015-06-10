@@ -59,7 +59,7 @@
 <h2>
 <a id="about" class="anchor" href="#about" aria-hidden="true"><span class="octicon octicon-link"></span></a>About</h2>
 
-<p>This is a simple application which show how data from Smallworld can be accessed by HTTP in JSON format. Goworld is composed of set of concurrent workers and one HTTP server. Worker communicates with Smallworld session via ACP protocol. HTTP server and workers communicates via RPC protocol. HTTP server publish data from workers as JSON.</p>
+<p>This is a simple application which shows how data from Smallworld can be accessed via HTTP in JSON format. Goworld is composed of set of concurrent workers and one HTTP server. Worker communicates with Smallworld session via ACP protocol. HTTP server and workers communicates via RPC protocol. HTTP server publish data from workers as JSON.</p>
 
 <p></p><div id="features"></div>
 
@@ -310,8 +310,8 @@ _self.flush()
 
 <p></p><div id="limitations"></div>
 
-<h2>
-<a id="limitations" class="anchor" href="#limitations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations</h2>
+<h3>
+<a id="limitations" class="anchor" href="#limitations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations</h3>
 
 <p>Currently if you type wrong <code>dataset</code> or <code>collection</code> name in http address, magik Acp will crush and probably you need stop HTTP server before you will start it again. That is because wrong HTTP request is still pending .</p>
 
