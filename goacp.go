@@ -10,11 +10,13 @@ import (
 	"os"
 )
 
+// Acp holds I/O buffer to communicate with Magik ACP
 type Acp struct {
 	Name string
 	io   *bufio.ReadWriter
 }
 
+// NewAcp creates and init new Acp with name
 func NewAcp(name string) *Acp {
 	reader := bufio.NewReader(os.Stdin)
 	writer := bufio.NewWriter(os.Stdout)
@@ -22,15 +24,18 @@ func NewAcp(name string) *Acp {
 	return &Acp{Name: name, io: inout}
 }
 
+// Flush send buffer data
 func (a *Acp) Flush() {
 	a.io.Flush()
 }
 
+// Write writes buffer to Acp output
 func (a *Acp) Write(buf []byte) {
 	a.io.Write(buf)
 	a.Flush()
 }
 
+// PutBool sends boolean value to Acp output
 func (a *Acp) PutBool(b bool) {
 	var ival byte
 	if !b {
@@ -40,19 +45,22 @@ func (a *Acp) PutBool(b bool) {
 	a.Flush()
 }
 
-func (a *Acp) PutUShort(short uint16) {
+// PutUshort sends unsigned short value to Acp output
+func (a *Acp) PutUshort(short uint16) {
 	buf := make([]byte, 2, 2)
 	binary.LittleEndian.PutUint16(buf, short)
 	a.Write(buf)
 }
 
+// PutString sends string value to Acp output
 func (a *Acp) PutString(s string) {
 	bytes := []byte(s)
 	l := len(bytes)
-	a.PutUShort(uint16(l))
+	a.PutUshort(uint16(l))
 	a.Write(bytes)
 }
 
+// read bytes from Acp input
 func (a *Acp) readBytes(n int) (buf []byte, err error) {
 	buf = make([]byte, 0, n)
 	_, err = a.io.Read(buf[:cap(buf)])
@@ -64,12 +72,14 @@ func (a *Acp) readBytes(n int) (buf []byte, err error) {
 	return
 }
 
+// ReadNumber reads number from Acp input
 func (a *Acp) ReadNumber(data interface{}) {
 	if err := binary.Read(a.io, binary.LittleEndian, data); err != nil {
 		log.Fatal(err)
 	}
 }
 
+// GetUshort reads unsigned short from Acp input
 func (a *Acp) GetUshort() int {
 	var (
 		res uint16
@@ -78,6 +88,7 @@ func (a *Acp) GetUshort() int {
 	return int(res)
 }
 
+// GetShort reads short from Acp input
 func (a *Acp) GetShort() int {
 	var (
 		res int16
@@ -86,6 +97,7 @@ func (a *Acp) GetShort() int {
 	return int(res)
 }
 
+// GetUint reads unsigned int from Acp input
 func (a *Acp) GetUint() int {
 	var (
 		res uint32
@@ -94,6 +106,7 @@ func (a *Acp) GetUint() int {
 	return int(res)
 }
 
+// GetString reads string from Acp input
 func (a *Acp) GetString() string {
 	b := a.GetUshort()
 	log.Printf("get string - bytes to read %v\n", b)
@@ -104,6 +117,7 @@ func (a *Acp) GetString() string {
 	return string(buf)
 }
 
+// VerifyConnection verify Acp process name
 func (a *Acp) VerifyConnection(name string) bool {
 	acpName := a.GetString()
 	res := acpName == name
@@ -112,6 +126,7 @@ func (a *Acp) VerifyConnection(name string) bool {
 	return res
 }
 
+// EstablishProtocol checks Acp protocol
 func (a *Acp) EstablishProtocol(minProtocol, maxProtocol int) bool {
 	min, max := minProtocol, maxProtocol
 	for {
@@ -119,8 +134,8 @@ func (a *Acp) EstablishProtocol(minProtocol, maxProtocol int) bool {
 		log.Printf("Protocol from SW: %d\n", in)
 		if in < min || in > max {
 			a.PutBool(false)
-			a.PutUShort(uint16(min))
-			a.PutUShort(uint16(max))
+			a.PutUshort(uint16(min))
+			a.PutUshort(uint16(max))
 			return false
 		}
 		break
@@ -129,6 +144,7 @@ func (a *Acp) EstablishProtocol(minProtocol, maxProtocol int) bool {
 	return true
 }
 
+// Connect verify connection and protocol to Acp
 func (a *Acp) Connect(processName string, protocolMin, protocolMax int) (err error) {
 	log.Printf("ACP started name: %s\n", processName)
 	if res := a.VerifyConnection(processName); !res {
