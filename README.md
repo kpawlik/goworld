@@ -21,7 +21,7 @@ Aplication which allows to access Smallworld data as JSON via HTTP
 <div id='about'/>
 ## About
 
-This is a simple application which show how data from Smallworld can be accessed by HTTP in JSON format. Goworld is composed of set of concurrent workers and one HTTP server. Worker communicates with Smallworld session via ACP protocol. HTTP server and workers communicates via RPC protocol. HTTP server publish data from workers as JSON.
+This is a simple application which shows how data from Smallworld can be accessed via HTTP in JSON format. Goworld is composed of set of concurrent workers and one HTTP server. Worker communicates with Smallworld session via ACP protocol. HTTP server and workers communicates via RPC protocol. HTTP server publish data from workers as JSON.
 
 <div id='features'/>
 ### Features 
