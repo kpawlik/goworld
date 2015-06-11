@@ -119,6 +119,8 @@ func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
 		ok                    bool
 		testFloat, resFloat   float64
 		testString, resString string
+		testLong, resLong     int64
+		testUlong, resUlong   uint64
 	)
 	defer func() {
 		if err := recover(); err != nil {
@@ -155,6 +157,18 @@ func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
 	resInt = acp.GetInt()
 	ok = testInt+1 == resInt
 	bodyElem["IntTest"] = fmt.Sprintf("Sent: %d, Get: %d, OK: %v", testInt, resInt, ok)
+	// test ulong
+	testUlong = 12345611112
+	acp.PutUlong(testUlong)
+	resUlong = acp.GetUlong()
+	ok = testUlong+1 == resUlong
+	bodyElem["UlongTest"] = fmt.Sprintf("Sent: %d, Get: %d, OK: %v", testUlong, resUlong, ok)
+	// test long
+	testLong = int64(-12345611112)
+	acp.PutLong(testLong)
+	resLong = acp.GetLong()
+	ok = testLong+1 == resLong
+	bodyElem["LongTest"] = fmt.Sprintf("Sent: %d, Get: %d, OK: %v", testLong, resLong, ok)
 
 	//test float
 	testFloat = -111112122.44

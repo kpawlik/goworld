@@ -70,6 +70,18 @@ func (a *Acp) PutInt(value int32) {
 	a.Flush()
 }
 
+// PutUlong sends unsigned long value to Acp output
+func (a *Acp) PutUlong(value uint64) {
+	binary.Write(a.io, binary.LittleEndian, value)
+	a.Flush()
+}
+
+// PutLong sends long value to Acp output
+func (a *Acp) PutLong(value int64) {
+	binary.Write(a.io, binary.LittleEndian, value)
+	a.Flush()
+}
+
 // PutFloat sends float value to Acp output
 func (a *Acp) PutFloat(value float64) {
 	binary.Write(a.io, binary.LittleEndian, value)
@@ -129,6 +141,20 @@ func (a *Acp) GetInt() int {
 	var res int32
 	a.ReadNumber(&res)
 	return int(res)
+}
+
+// GetUlong reads unsigned long from Acp input
+func (a *Acp) GetUlong() uint64 {
+	var res uint64
+	a.ReadNumber(&res)
+	return res
+}
+
+// GetLong reads long from Acp input
+func (a *Acp) GetLong() int64 {
+	var res int64
+	a.ReadNumber(&res)
+	return res
 }
 
 // GetFloat read float64 from Acp input

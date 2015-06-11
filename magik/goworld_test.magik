@@ -52,6 +52,17 @@ _method goworld_test.start()
 			write("Int ", int)			
 			int +<< 1
 			_self.put_signed_int(int)
+			
+			
+			_local ulong << _self.get_unsigned_long()
+			write("Ulong ", ulong)			
+			ulong +<< 1
+			_self.put_unsigned_long(ulong)
+
+			_local long << _self.get_signed_long()
+			write("Int ", long)			
+			long +<< 1
+			_self.put_signed_long(long)
 
 			_local fl << _self.get_float()
 			write("float: ", fl)
