@@ -5,24 +5,55 @@ import (
 	"io/ioutil"
 )
 
-// Port - port number to listing http
+// WorkMode - enumerator with serwer mode types
+type WorkMode int
+
+const (
+	// UnknownMode is unrecognized mode
+	UnknownMode WorkMode = iota
+	// NormalMode is production mode
+	NormalMode
+	// DemoMode demonstration mode for test only
+	DemoMode
+	// TestMode  to test communication between Acp and worker
+	TestMode
+)
+
+var modes = map[WorkMode]string{NormalMode: "normal", DemoMode: "demo", TestMode: "test"}
+
+func (w WorkMode) String() string {
+	return modes[w]
+}
+
+//WorkModeFromString converts string value to enumerator if not found then UnknownMode returns
+func WorkModeFromString(mode string) WorkMode {
+	for val, m := range modes {
+		if m == mode {
+			return val
+		}
+	}
+	return UnknownMode
+}
+
+// Config application configuration structure
 type Config struct {
 	Server  ServerConf
 	Workers []*WorkerConf
 }
 
+// ServerConf server configuration
 type ServerConf struct {
 	Port int
 }
 
-// Port no on which will be listen worker server
+// WorkerConf wrkers configuration
 type WorkerConf struct {
 	Host string
 	Name string
 	Port int
 }
 
-// read and decode JSON from file
+// ReadConf reads and decodes JSON from file
 func ReadConf(filePath string) (conf *Config, err error) {
 	var data []byte
 	if data, err = ioutil.ReadFile(filePath); err == nil {

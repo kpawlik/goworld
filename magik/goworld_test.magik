@@ -1,0 +1,96 @@
+#% text_encoding = utf8
+_package sw
+
+def_slotted_exemplar(:goworld_test,
+	{
+		{:name, _unset }
+	},
+	{:user_acp})
+$
+
+
+_method goworld_test.new(name,  exe_path, conf_path, log_path)
+	>> _clone.init(name,  exe_path, conf_path, log_path)
+_endmethod
+$
+
+_private _method goworld_test.init(name,  exe_path, conf_path, log_path)
+	_self.init_copy()
+	.name << name
+	.command << {write_string(exe_path,"  -n ", name, " -t worker  -c ", conf_path, " -l ", log_path, " -m test" )}
+	print(.command)
+	.program_ident << name
+	# First version, so min and max protocols are both zero
+	.minimum_protocol << 0
+	.maximum_protocol << 1
+	>> _self
+_endmethod
+$
+
+
+_method goworld_test.start()
+	write("starting worker: ", .name)
+	_protect
+		_self.lock()
+		_loop
+			_local ushort << _self.get_unsigned_short()
+			write("Ushort ", ushort)
+			ushort +<< 1
+			_self.put_unsigned_short(ushort)
+
+			_local short << _self.get_signed_short()
+			write("Short ", short)
+			short +<< 1
+			_self.put_signed_short(short)
+			
+			_local uint << _self.get_unsigned_int()
+			write("UInt ", uint)			
+			uint +<< 1
+			_self.put_unsigned_int(uint)
+
+			_local int << _self.get_signed_int()
+			write("Int ", int)			
+			int +<< 1
+			_self.put_signed_int(int)
+
+			_local fl << _self.get_float()
+			write("float: ", fl)
+			fl +<< 1
+			_self.put_float(fl)
+
+			_local str << _self.get_chars()
+			write("chars: ", str)
+			_self.put_chars(str)
+			
+			
+		_endloop
+	_protection
+		_self.close()	
+		_self.unlock()  	# release the lock
+	_endprotect 
+_endmethod
+$
+
+
+
+
+
+_method goworld_test.select_protocol(number)
+	## do nothing - always 0 anyway
+_endmethod
+$
+
+
+
+_global start_goworld_test_worker << _proc(name, exe, conf, log)
+				 _local pp << _proc()
+								  _import name, exe, conf, log
+								  _local g << goworld_test.new(name, exe, conf, log)
+								  g.start()
+							  _endproc.fork_at(light_thread.vm_priority - 1)
+			 _endproc 
+$
+
+
+
+

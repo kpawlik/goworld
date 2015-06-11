@@ -46,10 +46,34 @@ func (a *Acp) PutBool(b bool) {
 }
 
 // PutUshort sends unsigned short value to Acp output
-func (a *Acp) PutUshort(short uint16) {
-	buf := make([]byte, 2, 2)
-	binary.LittleEndian.PutUint16(buf, short)
-	a.Write(buf)
+func (a *Acp) PutUshort(value uint16) {
+	binary.Write(a.io, binary.LittleEndian, value)
+	a.Flush()
+
+}
+
+// PutShort sends short value to Acp output
+func (a *Acp) PutShort(value int16) {
+	binary.Write(a.io, binary.LittleEndian, value)
+	a.Flush()
+}
+
+// PutUint sends int value to Acp output
+func (a *Acp) PutUint(value uint32) {
+	binary.Write(a.io, binary.LittleEndian, value)
+	a.Flush()
+}
+
+// PutInt sends int value to Acp output
+func (a *Acp) PutInt(value int32) {
+	binary.Write(a.io, binary.LittleEndian, value)
+	a.Flush()
+}
+
+// PutFloat sends float value to Acp output
+func (a *Acp) PutFloat(value float64) {
+	binary.Write(a.io, binary.LittleEndian, value)
+	a.Flush()
 }
 
 // PutString sends string value to Acp output
@@ -81,29 +105,37 @@ func (a *Acp) ReadNumber(data interface{}) {
 
 // GetUshort reads unsigned short from Acp input
 func (a *Acp) GetUshort() int {
-	var (
-		res uint16
-	)
+	var res uint16
 	a.ReadNumber(&res)
 	return int(res)
 }
 
 // GetShort reads short from Acp input
 func (a *Acp) GetShort() int {
-	var (
-		res int16
-	)
+	var res int16
 	a.ReadNumber(&res)
 	return int(res)
 }
 
 // GetUint reads unsigned int from Acp input
 func (a *Acp) GetUint() int {
-	var (
-		res uint32
-	)
+	var res uint32
 	a.ReadNumber(&res)
 	return int(res)
+}
+
+// GetInt reads unsigned int from Acp input
+func (a *Acp) GetInt() int {
+	var res int32
+	a.ReadNumber(&res)
+	return int(res)
+}
+
+// GetFloat read float64 from Acp input
+func (a *Acp) GetFloat() float64 {
+	var res float64
+	a.ReadNumber(&res)
+	return res
 }
 
 // GetString reads string from Acp input
