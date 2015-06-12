@@ -24,6 +24,8 @@
 
 <p>Aplication which allows to access Smallworld data as JSON via HTTP</p>
 
+<p><a href="http://kpawlik.github.io/goworld">Visit project page</a></p>
+
 <hr>
 
 <h2>
@@ -45,7 +47,16 @@
 
 <ul>
 <li><a href="#quick-start">Quick start</a></li>
-<li><a href="#protocol">Protocol</a></li>
+<li>
+<a href="#protocol">Magik ACP -&gt; goworld worker Protocol</a>
+
+<ul>
+<li><a href="#list-protocol">List protocol</a></li>
+<li>
+<a href="#find-protocol">Find protocol</a><br>
+</li>
+</ul>
+</li>
 <li><a href="#stop">Stop</a></li>
 </ul>
 </li>
@@ -162,6 +173,8 @@
 <h3>
 <a id="quick-start" class="anchor" href="#quick-start" aria-hidden="true"><span class="octicon octicon-link"></span></a>Quick start</h3>
 
+<p>This example is for Windows, but this works the same way for Linux</p>
+
 <ul>
 <li><p>Download appropriate executable file to <code>C:\tmp\</code></p></li>
 <li><p>Create JSON config file c:\tmp\goworld.json</p></li>
@@ -207,7 +220,7 @@ Procedure <code>start_goworld_worker</code> takes 4 parameters: </p>
 </ul>
 </li>
 <li>
-<p>in Windows command line type:</p>
+<p>open Windows command line and type:</p>
 
 <pre><code>
 c:\tmp\goworld.exe -t http -c c:\tmp\goworld.json
@@ -219,9 +232,9 @@ c:\tmp\goworld.exe -t http -c c:\tmp\goworld.json
 <p>start internet browser and type in address bar</p>
 
 <pre><code>
-http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[NO OF RECORDS, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]
+http://localhost:4000/list/[DATASET NAME]/[COLLECTION NAME]/[LIMIT, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]
 eg.
-http://localhost:4000/gis/hotel/100/id/name/address1/address2
+http://localhost:4000/list/gis/hotel/100/id/name/address1/address2
 </code></pre>
 
 <p>application will display list 100 (or less if size of collection is less then 100) of JSON object eg.</p>
@@ -251,17 +264,54 @@ http://localhost:4000/gis/hotel/100/id/name/address1/address2
 <p></p><div id="protocol"></div>
 
 <h3>
-<a id="protocol" class="anchor" href="#protocol" aria-hidden="true"><span class="octicon octicon-link"></span></a>Protocol</h3>
+<a id="magik-acp---goworld-worker-protocol" class="anchor" href="#magik-acp---goworld-worker-protocol" aria-hidden="true"><span class="octicon octicon-link"></span></a>Magik ACP -&gt; goworld worker Protocol</h3>
 
-<p>In current implementation the <code>goworld</code> protocol looks like this</p>
+<p>Prototcol means the way how magik Acp and goworld worker are communicate.</p>
+
+<p></p><div id="list-protocol"></div>
+
+<h4>
+<a id="list-protocol" class="anchor" href="#list-protocol" aria-hidden="true"><span class="octicon octicon-link"></span></a>List protocol</h4>
+
+<p>List protocol starts with <code>list</code> prefix eg.</p>
+
+<p><code>http://localhost:4000/list/gis/hotel/100/id/name/address1</code></p>
+
+<p>Request:
+<code>http://[HOST]:[PORT]/list/[DATASET]/[COLLECTION]/[LIMIT, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]</code>`</p>
+
+<p>Returns a list of JSON objects, each JSON object contain LIST OF FIELDS and VALUES from COLLECTION. Number of objects is limited by LIMIT or size of COLLECTION.
+If DATASET or COLLECTION doesn not exists, error message is returned. If field does not exists error is returned as a field value.</p>
+
+<p>Communication:</p>
 
 <ol>
 <li>
 <p><code>goworld</code> send to magik a char vector, this is a path from http address. eg for 
-<code>http://localhost:4000/gis/hotel/100/id/name/address1/address2</code> it will be <code>gis/hotel/100/id/name/address1/address2</code>.</p>
+<code>http://localhost:4000/list/gis/hotel/100/id/name/address1/address2</code> it will be <code>gis/hotel/100/id/name/address1/address2</code>.</p>
 
 <pre><code>
 _local path </code></pre>
+</li>
+<li>
+<p>magik ACP send to goworld information about status as <code>unsigned byte</code></p>
+
+<ul>
+<li>
+<code>0</code> means <code>OK</code>, no error
+<pre><code>
+_self.put_unsigned_byte(0)
+</code></pre>
+</li>
+<li>
+<code>&gt; 0</code> means error (no such dataset, no access). In this case as a next message magik need to send string with error message
+<pre><code>
+_self.put_unsigned_byte(1)
+_self.chars(write_string("No such dataset with name", dataset_name))
+_continue
+</code></pre>
+</li>
+</ul>
 </li>
 <li>
 <p>magik ACP send to goworld number of record which will be send as <code>unsigned int</code></p>
@@ -289,22 +339,19 @@ _self.flush()
 </li>
 </ol>
 
-<p>In example magik file, path value is parsed as pattern:</p>
+<p></p><div id="find-protocol"></div>
 
-<p><code>http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[NO OF RECORDS, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]</code></p>
+<h4>
+<a id="find-protocol" class="anchor" href="#find-protocol" aria-hidden="true"><span class="octicon octicon-link"></span></a>Find protocol</h4>
 
-<p>But in your own magik class you can handle <code>path</code> value in your own way eg.</p>
-
-<p><code>http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[FIELD NAME]/[SEARCHED VALUE]</code></p>
-
-<p>and build a query from <code>FIELD NAME</code> and <code>SEARCHED VALUE</code>. This will work until communication between  goworker and magik ACP will be proceeded in accordance with the protocol.</p>
+<p>soon</p>
 
 <p></p><div id="stop"></div>
 
 <h3>
 <a id="stop" class="anchor" href="#stop" aria-hidden="true"><span class="octicon octicon-link"></span></a>Stop</h3>
 
-<p>To stop Acp just open system Task Manager and kill all <code>goworld</code> processes.</p>
+<p>To stop just open system Task Manager and kill all <code>goworld</code> processes.</p>
 
 <hr>
 
@@ -313,7 +360,7 @@ _self.flush()
 <h3>
 <a id="limitations" class="anchor" href="#limitations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations</h3>
 
-<p>Currently if you type wrong <code>dataset</code> or <code>collection</code> name in http address, magik Acp will crush and probably you need stop HTTP server before you will start it again. That is because wrong HTTP request is still pending .</p>
+<p>Currently JSON data are returned only as a {string: string}.</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/kpawlik/goworld">Goworld</a> is maintained by <a href="https://github.com/kpawlik">kpawlik</a>.</span>
