@@ -10,11 +10,6 @@ import (
 	"time"
 )
 
-const (
-	// Version number
-	Version = "0.1-2a"
-)
-
 var (
 	requestNames = map[WorkMode]string{NormalMode: "Protocol.GetResponse",
 		DemoMode: "Protocol.GetDemoResponse",

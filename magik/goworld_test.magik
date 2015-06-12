@@ -33,6 +33,16 @@ _method goworld_test.start()
 	_protect
 		_self.lock()
 		_loop
+			_local ubyte << _self.get_unsigned_byte()
+			write("Ubyte ", ubyte)
+			ubyte +<< 1
+			_self.put_unsigned_byte(ubyte)
+
+			_local byte << _self.get_signed_byte()
+			write("Byte ", byte)
+			byte +<< 1
+			_self.put_signed_byte(byte)
+			
 			_local ushort << _self.get_unsigned_short()
 			write("Ushort ", ushort)
 			ushort +<< 1
@@ -64,6 +74,11 @@ _method goworld_test.start()
 			long +<< 1
 			_self.put_signed_long(long)
 
+			_local sfl << _self.get_short_float()
+			write("short float: ", sfl)
+			sfl +<< 1
+			_self.put_short_float(sfl)
+			
 			_local fl << _self.get_float()
 			write("float: ", fl)
 			fl +<< 1
@@ -101,7 +116,3 @@ _global start_goworld_test_worker << _proc(name, exe, conf, log)
 							  _endproc.fork_at(light_thread.vm_priority - 1)
 			 _endproc 
 $
-
-
-
-

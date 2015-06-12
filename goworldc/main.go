@@ -31,7 +31,7 @@ func init() {
 	flag.StringVar(&configFilePath, "c", "", "path to config file")
 	flag.StringVar(&serverType, "t", "", "Server type [worker, http]")
 	flag.StringVar(&logFile, "l", "", "logfile")
-	flag.StringVar(&mode, "m", "n", "Work mode for test and debug [normal(default), demo, test]")
+	flag.StringVar(&mode, "m", "normal", "Work mode for test and debug [normal(default), demo, test]")
 	flag.Parse()
 	if serverType == "" || configFilePath == "" {
 		flag.Usage()

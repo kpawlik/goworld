@@ -38,10 +38,22 @@ func (a *Acp) Write(buf []byte) {
 // PutBool sends boolean value to Acp output
 func (a *Acp) PutBool(b bool) {
 	var ival byte
-	if !b {
+	if b {
 		ival = 1
 	}
 	a.io.WriteByte(ival)
+	a.Flush()
+}
+
+// PutUbyte sends unsigned byte value to Acp output
+func (a *Acp) PutUbyte(value uint8) {
+	binary.Write(a.io, binary.LittleEndian, value)
+	a.Flush()
+}
+
+// PutByte sends  byte value to Acp output
+func (a *Acp) PutByte(value int8) {
+	binary.Write(a.io, binary.LittleEndian, value)
 	a.Flush()
 }
 
@@ -49,7 +61,6 @@ func (a *Acp) PutBool(b bool) {
 func (a *Acp) PutUshort(value uint16) {
 	binary.Write(a.io, binary.LittleEndian, value)
 	a.Flush()
-
 }
 
 // PutShort sends short value to Acp output
@@ -78,6 +89,12 @@ func (a *Acp) PutUlong(value uint64) {
 
 // PutLong sends long value to Acp output
 func (a *Acp) PutLong(value int64) {
+	binary.Write(a.io, binary.LittleEndian, value)
+	a.Flush()
+}
+
+// PutShortFloat sends short float value to Acp output
+func (a *Acp) PutShortFloat(value float32) {
 	binary.Write(a.io, binary.LittleEndian, value)
 	a.Flush()
 }
@@ -113,6 +130,29 @@ func (a *Acp) ReadNumber(data interface{}) {
 	if err := binary.Read(a.io, binary.LittleEndian, data); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// GetBool reads boolean value from Acp input
+func (a *Acp) GetBool() bool {
+	b, err := a.io.ReadByte()
+	if err != nil {
+		log.Fatalf("Error reading boolean %v\n", err)
+	}
+	return b == 1
+}
+
+// GetUbyte reads unsigned byte from Acp input
+func (a *Acp) GetUbyte() int {
+	var res uint8
+	a.ReadNumber(&res)
+	return int(res)
+}
+
+// GetByte reads byte from Acp input
+func (a *Acp) GetByte() int {
+	var res int8
+	a.ReadNumber(&res)
+	return int(res)
 }
 
 // GetUshort reads unsigned short from Acp input
@@ -157,6 +197,13 @@ func (a *Acp) GetLong() int64 {
 	return res
 }
 
+// GetShortFloat read float32 from Acp input
+func (a *Acp) GetShortFloat() float32 {
+	var res float32
+	a.ReadNumber(&res)
+	return res
+}
+
 // GetFloat read float64 from Acp input
 func (a *Acp) GetFloat() float64 {
 	var res float64
@@ -167,7 +214,6 @@ func (a *Acp) GetFloat() float64 {
 // GetString reads string from Acp input
 func (a *Acp) GetString() string {
 	b := a.GetUshort()
-	log.Printf("get string - bytes to read %v\n", b)
 	buf, err := a.readBytes(b)
 	if err != nil {
 		log.Fatal(err)
@@ -180,7 +226,7 @@ func (a *Acp) VerifyConnection(name string) bool {
 	acpName := a.GetString()
 	res := acpName == name
 	log.Printf("Name: %s; From SW: %s; Res: %v\n", name, acpName, res)
-	a.PutBool(res)
+	a.PutBool(!res)
 	return res
 }
 
@@ -191,14 +237,14 @@ func (a *Acp) EstablishProtocol(minProtocol, maxProtocol int) bool {
 		in := a.GetUshort()
 		log.Printf("Protocol from SW: %d\n", in)
 		if in < min || in > max {
-			a.PutBool(false)
+			a.PutBool(true)
 			a.PutUshort(uint16(min))
 			a.PutUshort(uint16(max))
 			return false
 		}
 		break
 	}
-	a.PutBool(true)
+	a.PutBool(false)
 	return true
 }
 

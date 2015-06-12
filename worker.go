@@ -65,7 +65,9 @@ type Protocol struct {
 
 // GetResponse returns response object from worker
 func (t *Protocol) GetResponse(request *Request, resp *Response) error {
-
+	var (
+		bodyElement map[string]string
+	)
 	defer func() {
 		if err := recover(); err != nil {
 			log.Panic("PANIC ", err)
@@ -76,114 +78,28 @@ func (t *Protocol) GetResponse(request *Request, resp *Response) error {
 	log.Printf("Handle path: %s\n", path)
 	acp.PutString(path)
 	body := []map[string]string{}
+	status := acp.GetUbyte()
+	if status != 0 {
+		bodyElement = make(map[string]string)
+		err := acp.GetString()
+		bodyElement["Error"] = err
+		body = append(body, bodyElement)
+		resp.Body = body
+		return nil
+	}
 	noOfRecs := acp.GetUint()
 	noOfFields := acp.GetUint()
 
 	for i := 0; i < noOfRecs; i++ {
-		m := make(map[string]string)
+		bodyElement = make(map[string]string)
 		for j := 0; j < noOfFields; j++ {
 			fieldName := acp.GetString()
 			fieldValue := acp.GetString()
-			m[fieldName] = fieldValue
+			bodyElement[fieldName] = fieldValue
 		}
-		body = append(body, m)
+		body = append(body, bodyElement)
 	}
 	resp.Err = nil
-	resp.Body = body
-	return nil
-}
-
-// GetDemoResponse returns response object from worker
-func (t *Protocol) GetDemoResponse(request *Request, resp *Response) error {
-
-	defer func() {
-		if err := recover(); err != nil {
-			log.Panic("PANIC ", err)
-		}
-	}()
-	path := request.Path
-	log.Printf("Handle path: %s\n", path)
-	body := []map[string]string{}
-	m := make(map[string]string)
-	m[t.WorkerName] = path
-	body = append(body, m)
-	resp.Err = nil
-	resp.Body = body
-	return nil
-}
-
-// GetTestResponse returns response object from worker
-func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
-	var (
-		testInt, resInt       int
-		ok                    bool
-		testFloat, resFloat   float64
-		testString, resString string
-		testLong, resLong     int64
-		testUlong, resUlong   uint64
-	)
-	defer func() {
-		if err := recover(); err != nil {
-			log.Panic("PANIC ", err)
-		}
-	}()
-
-	body := []map[string]string{}
-	bodyElem := make(map[string]string)
-
-	path := request.Path
-	log.Printf("GetTestResponse - handle path: %s\n", path)
-	// test ushort
-	testInt = 12
-	acp.PutUshort(uint16(testInt))
-	resInt = acp.GetUshort()
-	ok = testInt+1 == resInt
-	bodyElem["UshortTest"] = fmt.Sprintf("Sent: %d, Get: %d, OK: %v", testInt, resInt, ok)
-	// test short
-	testInt = -111
-	acp.PutShort(int16(testInt))
-	resInt = acp.GetShort()
-	ok = testInt+1 == resInt
-	bodyElem["ShortTest"] = fmt.Sprintf("Sent: %d, Get: %d, OK: %v", testInt, resInt, ok)
-	// test uint
-	testInt = 11112
-	acp.PutUint(uint32(testInt))
-	resInt = acp.GetUint()
-	ok = testInt+1 == resInt
-	bodyElem["UintTest"] = fmt.Sprintf("Sent: %d, Get: %d, OK: %v", testInt, resInt, ok)
-	// test int
-	testInt = -11112
-	acp.PutInt(int32(testInt))
-	resInt = acp.GetInt()
-	ok = testInt+1 == resInt
-	bodyElem["IntTest"] = fmt.Sprintf("Sent: %d, Get: %d, OK: %v", testInt, resInt, ok)
-	// test ulong
-	testUlong = 12345611112
-	acp.PutUlong(testUlong)
-	resUlong = acp.GetUlong()
-	ok = testUlong+1 == resUlong
-	bodyElem["UlongTest"] = fmt.Sprintf("Sent: %d, Get: %d, OK: %v", testUlong, resUlong, ok)
-	// test long
-	testLong = int64(-12345611112)
-	acp.PutLong(testLong)
-	resLong = acp.GetLong()
-	ok = testLong+1 == resLong
-	bodyElem["LongTest"] = fmt.Sprintf("Sent: %d, Get: %d, OK: %v", testLong, resLong, ok)
-
-	//test float
-	testFloat = -111112122.44
-	acp.PutFloat(float64(testFloat))
-	resFloat = acp.GetFloat()
-	ok = testFloat+1 == resFloat
-	bodyElem["FloatTest"] = fmt.Sprintf("Sent: %f, Get: %f, OK: %v", testFloat, resFloat, ok)
-
-	//test string
-	testString = "111112122.44 oóDćłą   "
-	acp.PutString(testString)
-	resString = acp.GetString()
-	ok = testString == resString
-	bodyElem["StringTest"] = fmt.Sprintf("Sent: %s, Get: %s, OK: %v", testString, resString, ok)
-	body = append(body, bodyElem)
 	resp.Body = body
 	return nil
 }
