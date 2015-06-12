@@ -63,8 +63,8 @@ type Protocol struct {
 	WorkerName string
 }
 
-// GetResponse returns response object from worker
-func (t *Protocol) GetResponse(request *Request, resp *Response) error {
+// ListObjectsFields returns response object from worker
+func (t *Protocol) ListObjectsFields(request *Request, resp *Response) error {
 	var (
 		bodyElement map[string]string
 	)

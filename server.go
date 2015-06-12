@@ -11,9 +11,11 @@ import (
 )
 
 var (
-	requestNames = map[WorkMode]string{NormalMode: "Protocol.GetResponse",
+	requestNames = map[WorkMode]string{
 		DemoMode: "Protocol.GetDemoResponse",
 		TestMode: "Protocol.GetTestResponse"}
+
+	pathToReques = map[string]string{"list": "Protocol.ListObjectsFields"}
 )
 
 // StartServer initialize workers and starts HTTP server
@@ -91,21 +93,6 @@ func handleOfflineWorkers(online chan *Worker, offline chan *Worker) {
 	}
 }
 
-// checkPath checks if path is in configuration. If not then
-// check for patterm /value1/value2/.../valuen
-func checkPath(path string) bool {
-	res := strings.Split(path, "/")
-	if len(res) < 2 {
-		return false
-	}
-	for _, str := range res {
-		if len(str) == 0 {
-			return false
-		}
-	}
-	return true
-}
-
 // Worker type to store worker conenction and data
 type Worker struct {
 	Name string
@@ -121,18 +108,44 @@ type Handler struct {
 	WorkMode WorkMode
 }
 
+// parsePath parse path depend of which WorkMode has been selected.
+// In case of NormalMode first part of path  depends which Request method will be called.
+func (t *Handler) parsePath(path string) (processedPath, requestName string, ok bool) {
+	if t.WorkMode != NormalMode {
+		requestName, ok = requestNames[t.WorkMode]
+		processedPath = path
+		return
+	}
+	res := strings.Split(path, "/")
+	if len(res) < 1 {
+		ok = false
+		return
+	}
+	pathPrefix := res[0]
+	requestName, ok = pathToReques[pathPrefix]
+	processedPath = strings.Join(res[1:], "/")
+	return
+}
+
 // ServeHTTP is http request handler.
 func (t *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var (
+		path, requestName string
+		ok                bool
+	)
 	defer func() {
 		if err := recover(); err != nil {
 			log.Panicf("PANIC: %v\n", err)
 		}
 	}()
-	path := r.URL.Path[1:]
-	if path == "favicon.ico" {
+	path = r.URL.Path[1:]
+	path, requestName, ok = t.parsePath(path)
+	if !ok {
+		log.Printf("Unsuported protocol %s\n", path)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprintf(w, "Unsupported protocol")
 		return
 	}
-	requestName := requestNames[t.WorkMode]
 	log.Printf("Handle request with path: %s\n", path)
 	response := &Response{}
 	request := &Request{Path: path}

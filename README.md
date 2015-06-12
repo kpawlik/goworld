@@ -14,7 +14,9 @@ Aplication which allows to access Smallworld data as JSON via HTTP
 - [Build from sources](#build)
 - [Tutorial](#tutorial)
   - [Quick start](#quick-start)
-  - [Protocol](#protocol)
+  - [Magik ACP -> goworld worker Protocol](#protocol)
+     - [List protocol](#list-protocol)
+     - [Find protocol](#find-protocol)	
   - [Stop](#stop)
 - [Limitations](#limitations)
 
@@ -107,6 +109,9 @@ go to `GOPATH/github.com/kpawlik/goworld/goworldc` run:
 
 <div id='quick-start'/>
 ### Quick start
+
+This example is for Windows, but this works the same way for Linux
+
 - Download appropriate executable file to `C:\tmp\`
 
 - Create JSON config file c:\tmp\goworld.json
@@ -145,7 +150,7 @@ Procedure `start_goworld_worker` takes 4 parameters:
    * `path to config file`
    * `path where worker log file will be written`
 
-- in Windows command line type:
+- open Windows command line and type:
 <pre><code>
 c:\tmp\goworld.exe -t http -c c:\tmp\goworld.json
 </code></pre>
@@ -154,9 +159,9 @@ c:\tmp\goworld.exe -t http -c c:\tmp\goworld.json
 
 - start internet browser and type in address bar
 <pre><code>
-http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[NO OF RECORDS, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]
+http://localhost:4000/list/[DATASET NAME]/[COLLECTION NAME]/[LIMIT, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]
 eg.
-http://localhost:4000/gis/hotel/100/id/name/address1/address2
+http://localhost:4000/list/gis/hotel/100/id/name/address1/address2
 </code></pre>
 
    application will display list 100 (or less if size of collection is less then 100) of JSON object eg.
@@ -182,16 +187,44 @@ http://localhost:4000/gis/hotel/100/id/name/address1/address2
 </code></pre>
 
 <div id='protocol'/>
-### Protocol
+### Magik ACP -> goworld worker Protocol
 
-In current implementation the `goworld` protocol looks like this
+Prototcol means the way how magik Acp and goworld worker are communicate.
 
+
+<div id='list-protocol'/>
+#### List protocol
+List protocol starts with `list` prefix eg.
+
+`http://localhost:4000/list/gis/hotel/100/id/name/address1`
+
+Request:
+`http://[HOST]:[PORT]/list/[DATASET]/[COLLECTION]/[LIMIT, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]``
+
+Returns a list of JSON objects, each JSON object contain LIST OF FIELDS and VALUES from COLLECTION. Number of objects is limited by LIMIT or size of COLLECTION.
+If DATASET or COLLECTION doesn not exists, error message is returned. If field does not exists error is returned as a field value.
+
+
+Communication:
 
 1. `goworld` send to magik a char vector, this is a path from http address. eg for 
-`http://localhost:4000/gis/hotel/100/id/name/address1/address2` it will be `gis/hotel/100/id/name/address1/address2`.
+`http://localhost:4000/list/gis/hotel/100/id/name/address1/address2` it will be `gis/hotel/100/id/name/address1/address2`.
 <pre><code>
 _local path << _self.get_chars()
 </code></pre>
+
+2. magik ACP send to goworld information about status as `unsigned byte`
+   * `0` means `OK`, no error
+<pre><code>
+_self.put_unsigned_byte(0)
+</code></pre>
+   * `> 0` means error (no such dataset, no access). In this case as a next message magik need to send string with error message
+<pre><code>
+_self.put_unsigned_byte(1)
+_self.chars(write_string("No such dataset with name", dataset_name))
+_continue
+</code></pre>
+
 
 2. magik ACP send to goworld number of record which will be send as `unsigned int`
 <pre><code>
@@ -211,23 +244,20 @@ _self.put_chars(field_value)
 _self.flush()
 </code></pre>
 
-In example magik file, path value is parsed as pattern:
 
-`http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[NO OF RECORDS, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]`
+<div id='find-protocol'/>
+#### Find protocol
 
-But in your own magik class you can handle `path` value in your own way eg.
-
-`http://localhost:4000/[DATASET NAME]/[COLLECTION NAME]/[FIELD NAME]/[SEARCHED VALUE]`
-
-and build a query from `FIELD NAME` and `SEARCHED VALUE`. This will work until communication between  goworker and magik ACP will be proceeded in accordance with the protocol.
+soon
 
 
 <div id='stop'/>
 ### Stop 
-To stop Acp just open system Task Manager and kill all `goworld` processes.
+To stop just open system Task Manager and kill all `goworld` processes.
 
 ***
 
 <div id='limitations'/>
 ### Limitations
-Currently if you type wrong `dataset` or `collection` name in http address, magik Acp will crush and probably you need stop HTTP server before you will start it again. That is because wrong HTTP request is still pending .
+Currently JSON data are returned only as a {string: string}.
+
