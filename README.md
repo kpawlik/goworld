@@ -2,6 +2,8 @@
 
 Aplication which allows to access Smallworld data as JSON via HTTP
 
+[Visit project page] (http://kpawlik.github.io/goworld)
+
 ***
 
 ## Table of Contents
