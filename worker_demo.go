@@ -6,7 +6,7 @@ import (
 )
 
 // GetDemoResponse returns response object from worker
-func (t *Protocol) GetDemoResponse(request *Request, resp *Response) error {
+func (t *Worker) GetDemoResponse(request *Request, resp *Response) error {
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -15,17 +15,16 @@ func (t *Protocol) GetDemoResponse(request *Request, resp *Response) error {
 	}()
 	path := request.Path
 	log.Printf("Handle path: %s\n", path)
-	body := []map[string]string{}
-	m := make(map[string]string)
+	body := []BodyElement{}
+	m := make(BodyElement)
 	m[t.WorkerName] = path
 	body = append(body, m)
-	resp.Err = nil
 	resp.Body = body
 	return nil
 }
 
 // GetTestResponse returns response object from worker
-func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
+func (t *Worker) GetTestResponse(request *Request, resp *Response) error {
 	var (
 		testInt, resInt       int
 		ok                    bool
@@ -35,7 +34,7 @@ func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
 		testLong, resLong     int64
 		testUlong, resUlong   uint64
 		testBool, resBool     bool
-		bodyElem              map[string]string
+		bodyElem              BodyElement
 	)
 	defer func() {
 		if err := recover(); err != nil {
@@ -43,13 +42,13 @@ func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
 		}
 	}()
 
-	body := []map[string]string{}
+	body := []BodyElement{}
 
 	path := request.Path
 	log.Printf("GetTestResponse - handle path: %s\n", path)
 
 	//test bool
-	bodyElem = make(map[string]string)
+	bodyElem = make(BodyElement)
 	testBool = true
 	acp.PutBool(testBool)
 	resBool = acp.GetBool()
@@ -63,7 +62,7 @@ func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
 	body = append(body, bodyElem)
 
 	// test ubyte
-	bodyElem = make(map[string]string)
+	bodyElem = make(BodyElement)
 	testInt = 12
 	acp.PutUbyte(uint8(testInt))
 	resInt = acp.GetUbyte()
@@ -79,7 +78,7 @@ func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
 	body = append(body, bodyElem)
 
 	// test ushort
-	bodyElem = make(map[string]string)
+	bodyElem = make(BodyElement)
 	testInt = 12
 	acp.PutUshort(uint16(testInt))
 	resInt = acp.GetUshort()
@@ -94,7 +93,7 @@ func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
 	body = append(body, bodyElem)
 
 	// test uint
-	bodyElem = make(map[string]string)
+	bodyElem = make(BodyElement)
 	testInt = 11112
 	acp.PutUint(uint32(testInt))
 	resInt = acp.GetUint()
@@ -109,7 +108,7 @@ func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
 	body = append(body, bodyElem)
 
 	// test ulong
-	bodyElem = make(map[string]string)
+	bodyElem = make(BodyElement)
 	testUlong = 12345611112
 	acp.PutUlong(testUlong)
 	resUlong = acp.GetUlong()
@@ -124,7 +123,7 @@ func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
 	body = append(body, bodyElem)
 
 	//test short float
-	bodyElem = make(map[string]string)
+	bodyElem = make(BodyElement)
 	testSFloat = -11111.44
 	acp.PutShortFloat(testSFloat)
 	resSFloat = acp.GetShortFloat()
@@ -133,7 +132,7 @@ func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
 	body = append(body, bodyElem)
 
 	//test float
-	bodyElem = make(map[string]string)
+	bodyElem = make(BodyElement)
 	testFloat = -111112122.44
 	acp.PutFloat(float64(testFloat))
 	resFloat = acp.GetFloat()
@@ -142,7 +141,7 @@ func (t *Protocol) GetTestResponse(request *Request, resp *Response) error {
 	body = append(body, bodyElem)
 
 	//test string
-	bodyElem = make(map[string]string)
+	bodyElem = make(BodyElement)
 	testString = "111112122.44 NON ASCII chars łóśćężąłQążźGFGĘĄÓŁ  źżźć"
 	acp.PutString(testString)
 	resString = acp.GetString()

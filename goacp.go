@@ -264,3 +264,95 @@ func (a *Acp) Connect(processName string, protocolMin, protocolMax int) (err err
 	log.Println("Connected")
 	return
 }
+
+// Put convert value to dataType and send this value to ACP
+func (a *Acp) Put(dataType string, value interface{}) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = r.(error)
+			return
+		}
+	}()
+	switch dataType {
+	case "boolean":
+		ival := value.(bool)
+		a.PutBool(ival)
+	case "unsigned_byte":
+		ival := value.(uint8)
+		a.PutUbyte(ival)
+	case "signed_byte":
+		ival := value.(int8)
+		a.PutByte(ival)
+	case "unsigned_short":
+		ival := value.(uint16)
+		a.PutUshort(ival)
+	case "signed_short":
+		ival := value.(int16)
+		a.PutShort(ival)
+	case "unsigned_int":
+		ival := value.(uint32)
+		a.PutUint(ival)
+	case "signed_int":
+		ival := value.(int32)
+		a.PutInt(ival)
+	case "unsigned_long":
+		ival := value.(uint64)
+		a.PutUlong(ival)
+	case "signed_long":
+		ival := value.(int64)
+		a.PutLong(ival)
+	case "short_float":
+		ival := value.(float32)
+		a.PutShortFloat(ival)
+	case "float":
+		ival := value.(float64)
+		a.PutFloat(ival)
+	case "chars":
+		ival := value.(string)
+		a.PutString(ival)
+	default:
+		return errors.New(fmt.Sprintf("Unsuported data type '%s' in Put method", dataType))
+	}
+	return nil
+
+}
+
+// Get method reads dataType value from ACP
+func (a *Acp) Get(dataType string) (value interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = r.(error)
+			return
+		}
+	}()
+	switch dataType {
+	case "boolean":
+		return a.GetBool(), nil
+	case "unsigned_byte":
+		return a.GetUbyte(), nil
+	case "signed_byte":
+		return a.GetByte(), nil
+	case "unsigned_short":
+		return a.GetUshort(), nil
+	case "signed_short":
+		return a.GetShort(), nil
+	case "unsigned_int":
+		return a.GetUint(), nil
+	case "signed_int":
+		return a.GetInt(), nil
+	case "unsigned_long":
+		return a.GetUlong(), nil
+	case "signed_long":
+		return a.GetLong(), nil
+	case "short_float":
+		return a.GetShortFloat(), nil
+	case "float":
+		return a.GetFloat(), nil
+	case "chars":
+		return a.GetString(), nil
+	default:
+		return nil, errors.New(fmt.Sprintf("Unsuported data type '%s' in Get method", dataType))
+	}
+	return nil, nil
+
+}

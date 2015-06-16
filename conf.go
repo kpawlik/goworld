@@ -10,7 +10,7 @@ type WorkMode int
 
 const (
 	// Version number
-	Version = "0.8"
+	Version = "0.8.1"
 	// UnknownMode is unrecognized mode
 	UnknownMode WorkMode = iota
 	// NormalMode is production mode
@@ -37,15 +37,10 @@ func WorkModeFromString(mode string) WorkMode {
 	return UnknownMode
 }
 
-// Config application configuration structure
-type Config struct {
-	Server  ServerConf
-	Workers []*WorkerConf
-}
-
 // ServerConf server configuration
 type ServerConf struct {
-	Port int
+	Port      int
+	Protocols []*ProtocolConf
 }
 
 // WorkerConf wrkers configuration
@@ -53,6 +48,46 @@ type WorkerConf struct {
 	Host string
 	Name string
 	Port int
+}
+
+// ParameterConf is parameter name and type definition. Type could take values string, unsigned_int, signed_int, etc
+type ParameterConf struct {
+	Name string
+	Type string
+}
+
+// ProtocolConf is a definition of protocol. Contains name, list of entry parameters and list of results fields
+type ProtocolConf struct {
+	Name    string
+	Enabled bool
+	Params  []*ParameterConf
+	Results []*ParameterConf
+}
+
+// Config application configuration structure
+type Config struct {
+	Server  ServerConf
+	Workers []*WorkerConf
+}
+
+// GetProtocolDef returns Protocol definition of nil if not found
+func (c Config) GetProtocolDef(name string) *ProtocolConf {
+	for _, prot := range c.Server.Protocols {
+		if prot.Name == name {
+			return prot
+		}
+	}
+	return nil
+}
+
+// GetWorkerDef returns worker connection definition of nil if not found
+func (c Config) GetWorkerDef(name string) *WorkerConf {
+	for _, worker := range c.Workers {
+		if worker.Name == name {
+			return worker
+		}
+	}
+	return nil
 }
 
 // ReadConf reads and decodes JSON from file
@@ -69,18 +104,20 @@ func unmarshal(data []byte) (conf *Config, err error) {
 	return
 }
 
+type BodyElement map[string]interface{}
+
+type Body []BodyElement
+
 // Response struct
-// Err - error if something go wrong
 // Body - result map (field, value) to json
 type Response struct {
-	Err  error
-	Body []map[string]string
+	Body  Body
+	Error error
 }
 
 //
 // Request struct
-// Urlreq - struct contain data to get
 type Request struct {
-	Path string
-	Args []string
+	Path     string
+	Protocol *ProtocolConf
 }

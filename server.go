@@ -12,19 +12,25 @@ import (
 
 var (
 	requestNames = map[WorkMode]string{
-		DemoMode: "Protocol.GetDemoResponse",
-		TestMode: "Protocol.GetTestResponse"}
+		DemoMode: "Worker.GetDemoResponse",
+		TestMode: "Worker.GetTestResponse"}
 
-	pathToReques = map[string]string{"list": "Protocol.ListObjectsFields"}
+	pathToReques = map[string]string{
+		"list":   "Worker.ListObjectsFields",
+		"custom": "Worker.Custom",
+	}
 )
+
+// channels with workers connections
+type workerChan chan *WorkerConnection
 
 // StartServer initialize workers and starts HTTP server
 func StartServer(config *Config, mode WorkMode) {
 	online, offline := initWorkersConnections(config.Workers)
-	port := fmt.Sprintf(":%d", config.Server.Port)
+
 	// try reconect workers in goroutine
 	go handleOfflineWorkers(online, offline)
-	startHTTPServer(port, online, offline, mode)
+	startHTTPServer(config, online, offline, mode)
 	defer func() {
 		if err := recover(); err != nil {
 			log.Panic("PANIC ", err)
@@ -33,31 +39,33 @@ func StartServer(config *Config, mode WorkMode) {
 }
 
 // startHTTPServer starts main http server
-func startHTTPServer(port string, online chan *Worker, offline chan *Worker, mode WorkMode) {
-	log.Printf("Http server start on port: %s\n", port)
+func startHTTPServer(config *Config, online workerChan, offline workerChan, mode WorkMode) {
+	port := config.Server.Port
+	log.Printf("HTTP server started on port: %v\n", port)
 	server := &http.Server{
-		Addr: port,
-		Handler: &Handler{Online: online,
+		Addr: portNo(port),
+		Handler: &ReqHandler{Online: online,
 			Offline:  offline,
+			Config:   config,
 			WorkMode: mode},
 		ReadTimeout:    1 * time.Minute,
 		WriteTimeout:   1 * time.Minute,
 		MaxHeaderBytes: 1 << 20,
 	}
-	log.Printf("SERVWER ERROR ! %s\n", server.ListenAndServe())
+	log.Printf("SERVWER ERROR!\n %s\n", server.ListenAndServe())
 }
 
 // initWorkersConnections initialize RPC clients connections. Cache them to online channel.
 // Workers which are not connected are send to offline channel
-func initWorkersConnections(workersDef []*WorkerConf) (onlineWorkers chan *Worker, offlineWorkers chan *Worker) {
+func initWorkersConnections(workersDef []*WorkerConf) (onlineWorkers workerChan, offlineWorkers workerChan) {
 	workersNo := len(workersDef)
-	onlineWorkers = make(chan *Worker, workersNo)
-	offlineWorkers = make(chan *Worker, workersNo)
+	onlineWorkers = make(workerChan, workersNo)
+	offlineWorkers = make(workerChan, workersNo)
 	connectedWorkersNo := 0
 	for _, workerDef := range workersDef {
 		conn, err := rpc.DialHTTP("tcp", fmt.Sprintf("%s:%d", workerDef.Host, workerDef.Port))
 		if err != nil {
-			worker := &Worker{Host: workerDef.Host,
+			worker := &WorkerConnection{Host: workerDef.Host,
 				Port: workerDef.Port,
 				Name: workerDef.Name}
 			offlineWorkers <- worker
@@ -65,19 +73,18 @@ func initWorkersConnections(workersDef []*WorkerConf) (onlineWorkers chan *Worke
 		}
 		log.Printf("Worker %s (%s:%d), CONNECTED \n", workerDef.Name, workerDef.Host, workerDef.Port)
 		connectedWorkersNo++
-		worker := &Worker{Host: workerDef.Host,
+		worker := &WorkerConnection{Host: workerDef.Host,
 			Port: workerDef.Port,
 			Name: workerDef.Name,
 			Conn: conn}
 		onlineWorkers <- worker
 	}
-	log.Printf("Connected workers: %d \n", connectedWorkersNo)
 	return
 }
 
 //handleOfflineWorkers trying to reconnect offline workers every one second. When worker will reconnect
 // send him to online chanel
-func handleOfflineWorkers(online chan *Worker, offline chan *Worker) {
+func handleOfflineWorkers(online workerChan, offline workerChan) {
 	for {
 		<-time.After(1 * time.Second)
 		for worker := range offline {
@@ -93,45 +100,62 @@ func handleOfflineWorkers(online chan *Worker, offline chan *Worker) {
 	}
 }
 
-// Worker type to store worker conenction and data
-type Worker struct {
+// WorkerConnection type to store worker conenction and data
+type WorkerConnection struct {
 	Name string
 	Host string
 	Port int
 	Conn *rpc.Client
 }
 
-// Handler struct to implement ServeHTTP method
-type Handler struct {
-	Online   chan *Worker
-	Offline  chan *Worker
+// ReqHandler struct to implement ServeHTTP method
+type ReqHandler struct {
+	Online   workerChan
+	Offline  workerChan
+	Config   *Config
 	WorkMode WorkMode
 }
 
-// parsePath parse path depend of which WorkMode has been selected.
-// In case of NormalMode first part of path  depends which Request method will be called.
-func (t *Handler) parsePath(path string) (processedPath, requestName string, ok bool) {
+// getProtocolConf return protocol definition with name which should be
+// first part of path
+func (t *ReqHandler) getProtocolConf(path string) *ProtocolConf {
+	res := strings.Split(path, "/")
+	if len(res) == 0 {
+		return nil
+	}
+	return t.Config.GetProtocolDef(res[0])
+}
+
+// parsePath parse string parameter depend of which WorkMode has been selected.
+// In case of NormalMode first part of path depends which Request method will be called.
+func (t *ReqHandler) parsePath(path string) (processedPath, requestFunc string, ok bool) {
 	if t.WorkMode != NormalMode {
-		requestName, ok = requestNames[t.WorkMode]
+		// demo and test
+		requestFunc, ok = requestNames[t.WorkMode]
 		processedPath = path
 		return
 	}
 	res := strings.Split(path, "/")
-	if len(res) < 1 {
+	if len(res) == 0 {
 		ok = false
 		return
 	}
-	pathPrefix := res[0]
-	requestName, ok = pathToReques[pathPrefix]
 	processedPath = strings.Join(res[1:], "/")
+	protocolName := res[0]
+	switch protocolName {
+	case "list":
+		requestFunc, ok = pathToReques[protocolName]
+		return
+	}
+	requestFunc, ok = pathToReques["custom"]
 	return
 }
 
 // ServeHTTP is http request handler.
-func (t *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (t *ReqHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var (
-		path, requestName string
-		ok                bool
+		path, requestFuncName string
+		ok                    bool
 	)
 	defer func() {
 		if err := recover(); err != nil {
@@ -139,32 +163,41 @@ func (t *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	path = r.URL.Path[1:]
-	path, requestName, ok = t.parsePath(path)
+	protocolConf := t.getProtocolConf(path)
+	if protocolConf == nil || !protocolConf.Enabled {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprintf(w, "Unauthorized protocol\n")
+		return
+	}
+	path, requestFuncName, ok = t.parsePath(path)
 	if !ok {
-		log.Printf("Unsuported protocol %s\n", path)
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprintf(w, "Unsupported protocol")
 		return
 	}
-	log.Printf("Handle request with path: %s\n", path)
 	response := &Response{}
-	request := &Request{Path: path}
+	request := &Request{
+		Path:     path,
+		Protocol: protocolConf}
 	// get free worker
 	for {
 		worker := <-t.Online
-		log.Printf("Send request %s to worker %s\n", path, worker.Name)
 		conn := worker.Conn
-		if err := conn.Call(requestName, request, &response); err != nil {
-			// in case of error
-			w.WriteHeader(http.StatusInternalServerError)
+		if err := conn.Call(requestFuncName, request, &response); err != nil {
 			log.Printf("ERROR: Response from worker %s, code: %d. Remote procedure call: %s\n",
 				worker.Name, http.StatusInternalServerError, err)
+			// add worker to the offline pool
 			t.Offline <- worker
 		} else {
-			// return worker to the pool
+			// return worker to the online pool
 			t.Online <- worker
 			break
 		}
+	}
+	if response.Error != nil {
+		fmt.Fprintf(w, "%v", response.Error)
+		return
+
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -172,5 +205,4 @@ func (t *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := enc.Encode(response.Body); err != nil {
 		log.Printf("Error Encode response body: %s\n", err)
 	}
-
 }

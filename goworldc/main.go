@@ -45,7 +45,7 @@ func init() {
 		log.Println("Set process name for worker")
 	}
 	if serverType == "http" {
-		runtime.GOMAXPROCS(runtime.NumCPU() - 1)
+		runtime.GOMAXPROCS(runtime.NumCPU())
 	}
 	if logFile == "" {
 		log.SetOutput(os.Stdout)
@@ -56,12 +56,14 @@ func init() {
 		log.SetOutput(file)
 	}
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	log.Printf("Version %s\n", goworld.Version)
-	log.Printf("Proces name: %s\n", processName)
-	log.Printf("Config file path: %s\n", configFilePath)
+	log.Printf("Version:     %s\n", goworld.Version)
+	if len(processName) > 0 {
+		log.Printf("Proces name: %s\n", processName)
+	}
+	log.Printf("Config file: %s\n", configFilePath)
 	log.Printf("Server type: %s\n", serverType)
 	if mode != "normal" {
-		log.Printf("Mode type %s\n", mode)
+		log.Printf("Mode type:  %s\n", mode)
 	}
 }
 
