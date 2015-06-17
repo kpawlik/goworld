@@ -10,7 +10,7 @@ type WorkMode int
 
 const (
 	// Version number
-	Version = "0.8.1"
+	Version = "0.9"
 	// UnknownMode is unrecognized mode
 	UnknownMode WorkMode = iota
 	// NormalMode is production mode
