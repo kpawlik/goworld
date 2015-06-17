@@ -104,8 +104,10 @@ func unmarshal(data []byte) (conf *Config, err error) {
 	return
 }
 
+// BodyElement is a type which is a part of JSON reposnse
 type BodyElement map[string]interface{}
 
+// Body list of BodyElemnts. JSON response object.
 type Body []BodyElement
 
 // Response struct

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/rpc"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -129,6 +130,7 @@ func (t *ReqHandler) getProtocolConf(path string) *ProtocolConf {
 // parsePath parse string parameter depend of which WorkMode has been selected.
 // In case of NormalMode first part of path depends which Request method will be called.
 func (t *ReqHandler) parsePath(path string) (processedPath, requestFunc string, ok bool) {
+	path, _ = url.QueryUnescape(path)
 	if t.WorkMode != NormalMode {
 		// demo and test
 		requestFunc, ok = requestNames[t.WorkMode]

@@ -311,17 +311,17 @@ func (a *Acp) Put(dataType string, value interface{}) (err error) {
 		ival := value.(string)
 		a.PutString(ival)
 	default:
-		return errors.New(fmt.Sprintf("Unsuported data type '%s' in Put method", dataType))
+		return fmt.Errorf("Unsuported data type '%s' in Put method", dataType)
 	}
 	return nil
 
 }
 
 // Get method reads dataType value from ACP
-func (a *Acp) Get(dataType string) (value interface{}, err error) {
+func (a *Acp) Get(dataType string) (value interface{}, err *AcpErr) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = r.(error)
+			err = NewAcpErr(fmt.Sprint(r.(error)))
 			return
 		}
 	}()
@@ -351,8 +351,6 @@ func (a *Acp) Get(dataType string) (value interface{}, err error) {
 	case "chars":
 		return a.GetString(), nil
 	default:
-		return nil, errors.New(fmt.Sprintf("Unsuported data type '%s' in Get method", dataType))
+		return nil, NewAcpErr(fmt.Sprintf("Unsuported data type '%s' in Get method", dataType))
 	}
-	return nil, nil
-
 }

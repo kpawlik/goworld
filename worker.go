@@ -14,6 +14,7 @@ var (
 )
 
 const (
+	// SucessStatus value which should be returned from ACP if no error ocure
 	SucessStatus = 0
 )
 
@@ -60,7 +61,7 @@ type Worker struct {
 // ListObjectsFields returns response object from worker
 // Demo protocol method. Returns list of fields from objects.
 // All data are converted to strings
-func (t *Worker) ListObjectsFields(request *Request, resp *Response) error {
+func (w *Worker) ListObjectsFields(request *Request, resp *Response) error {
 	var (
 		bodyElem BodyElement
 	)
@@ -74,10 +75,9 @@ func (t *Worker) ListObjectsFields(request *Request, resp *Response) error {
 	// send path
 	acp.PutString(request.Path)
 
-	status := acp.GetUbyte()
-	if status != SucessStatus {
-		err := acp.GetString()
-		resp.Error = NewAcpErr(fmt.Sprintf("ACP ERR %v", err))
+	// get status
+	if ok, err := w.chackStatus(); !ok {
+		resp.Error = err
 		return nil
 	}
 	noOfRecs := acp.GetUint()
@@ -96,38 +96,30 @@ func (t *Worker) ListObjectsFields(request *Request, resp *Response) error {
 	return nil
 }
 
-func (t *Worker) Custom(request *Request, resp *Response) error {
+// Custom handles communication defined by custom protocol in config file
+func (w *Worker) Custom(request *Request, resp *Response) (err error) {
 	var (
 		bodyElem BodyElement
+		acpErr   *AcpErr
+		ok       bool
 	)
 	protocol := request.Protocol
-	path := request.Path
-	pathParams := strings.Split(path, "/")
+	pathParams := strings.Split(request.Path, "/")
 	if len(pathParams) != len(protocol.Params) {
-		resp.Error = NewAcpErr("Number of params in request different then in protocol definition")
+		resp.Error = NewAcpErr("Wrong number of parameters.")
 		return nil
 	}
 	// send protocol name to ACP
 	acp.PutString(protocol.Name)
 	// Send all param name and value to ACP
-	for i, paramDef := range protocol.Params {
-		if param, err := ParseStringParam(pathParams[i], paramDef.Type); err != nil {
-			resp.Error = err
-			return nil
-		} else {
-			if err := acp.Put(paramDef.Type, param); err != nil {
-				resp.Error = NewAcpErr(fmt.Sprintf("Error puting parameter '%s' value: '%s' as type %s. Err: %v\n",
-					paramDef.Name, param, paramDef.Type, err))
-				return nil
-			}
-		}
+	if acpErr = w.sendParameters(protocol, pathParams); err != nil {
+		resp.Error = acpErr
+		return
 	}
 	// get status
-	status := acp.GetUbyte()
-	if status != SucessStatus {
-		err := acp.GetString()
-		resp.Error = NewAcpErr(fmt.Sprintf("Error from acp: %s", err))
-		return nil
+	if ok, acpErr = w.chackStatus(); !ok {
+		resp.Error = acpErr
+		return
 	}
 	// Get Recods
 	noOfRecs := acp.GetUint()
@@ -135,17 +127,63 @@ func (t *Worker) Custom(request *Request, resp *Response) error {
 
 	resultFieldsDef := protocol.Results
 	for i := 0; i < noOfRecs; i++ {
-		bodyElem = make(BodyElement)
-		for _, fieldDef := range resultFieldsDef {
-			if value, err := acp.Get(fieldDef.Type); err != nil {
-				resp.Error = NewAcpErr(fmt.Sprintf("%v", err))
-				return nil
-			} else {
-				bodyElem[fieldDef.Name] = value
-			}
+		if bodyElem, acpErr = w.getFields(resultFieldsDef); acpErr != nil {
+			resp.Error = acpErr
+			return
 		}
 		body = append(body, bodyElem)
 	}
 	resp.Body = body
-	return nil
+	return
+}
+
+// chackStatus checks if ACP returns valid sucess status. If not then read error message and create error object
+func (w *Worker) chackStatus() (bool, *AcpErr) {
+	status := acp.GetUbyte()
+	if status != SucessStatus {
+		return false, NewAcpErr(fmt.Sprintf("Status error from ACP: Code %d. Message: %s", status, acp.GetString()))
+	}
+	return true, nil
+}
+
+//sendParameters sends list of parameters from request to ACP
+func (w *Worker) sendParameters(protocol *ProtocolConf, pathParams []string) (err *AcpErr) {
+	for i, paramDef := range protocol.Params {
+		if err = w.sendParameter(paramDef, pathParams[i]); err != nil {
+			return
+		}
+	}
+	return
+}
+
+//sendParameter convert and send string parameter to ACP
+func (w *Worker) sendParameter(paramDef *ParameterConf, value string) (acpErr *AcpErr) {
+	var (
+		param interface{}
+		err   error
+	)
+	if param, err = ParseStringParam(value, paramDef.Type); err != nil {
+		acpErr = NewAcpErr(fmt.Sprint(err))
+		return
+	}
+	if err = acp.Put(paramDef.Type, param); err != nil {
+		acpErr = NewAcpErr(fmt.Sprint(err))
+		return
+	}
+	return
+}
+
+// getFields reads list of fields from ACP to map
+func (w *Worker) getFields(resultFieldsDef []*ParameterConf) (bodyElem BodyElement, acpErr *AcpErr) {
+	var (
+		value interface{}
+	)
+	bodyElem = make(BodyElement, len(resultFieldsDef))
+	for _, fieldDef := range resultFieldsDef {
+		if value, acpErr = acp.Get(fieldDef.Type); acpErr != nil {
+			return
+		}
+		bodyElem[fieldDef.Name] = value
+	}
+	return
 }
