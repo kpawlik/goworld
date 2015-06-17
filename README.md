@@ -290,28 +290,28 @@ http://localhost:4000/list/gis/hotel/100/id/name/address1/address2
 	## 
 		!print_float_precision! << 12
 		# This will get name from "params"
-	    _local name << _self.get_chars()
-	    #send status
-	    _self.send_success_status()
-	    _self.flush()
-	    _local ds << gis_program_manager.databases[:gis]
-	    _local coll << ds.collections[:hotel]
-	    _local select << coll.select(predicate.eq(:name, name))
-	    # send no of recs
-	    _self.put_unsigned_int(select.size)
-	    _self.flush()       
-	    # send results fields in the same order as in config file 
-	    _for rec _over select.fast_elements()
-	    _loop 
-	        _self.put_chars(write_string(rec.address1))
-	        _self.flush()
-	        _self.put_chars(write_string(rec.address2))
-	        _self.flush()
-	        _self.put_float(rec.location.x)
-	        _self.flush()
-	        _self.put_float(rec.location.y)
-	        _self.flush()
-	    _endloop 
+	    	_local name << _self.get_chars()
+		#send status
+		_self.send_success_status()
+		_self.flush()
+		_local ds << gis_program_manager.databases[:gis]
+		_local coll << ds.collections[:hotel]
+		_local select << coll.select(predicate.eq(:name, name))
+		# send no of recs
+		_self.put_unsigned_int(select.size)
+		_self.flush()       
+		# send results fields in the same order as in config file 
+		_for rec _over select.fast_elements()
+		_loop 
+		    _self.put_chars(write_string(rec.address1))
+		    _self.flush()
+		    _self.put_chars(write_string(rec.address2))
+		    _self.flush()
+		    _self.put_float(rec.location.x)
+		    _self.flush()
+		    _self.put_float(rec.location.y)
+		    _self.flush()
+		 _endloop 
 	_endmethod
 	$
 	</code></pre>
