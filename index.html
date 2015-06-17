@@ -37,7 +37,15 @@
 
 <ul>
 <li><a href="#features">Features</a></li>
-<li><a href="#config-file">Config file</a></li>
+</ul>
+</li>
+<li>
+<a href="#config">Configuration</a>
+
+<ul>
+<li><a href="#config-file">Configuration file</a></li>
+<li><a href="#config-list-protocol">List protocol</a></li>
+<li><a href="#config-custom-protocol">Custom protocol</a></li>
 </ul>
 </li>
 <li><a href="#download">Downloads</a></li>
@@ -46,21 +54,19 @@
 <a href="#tutorial">Tutorial</a>
 
 <ul>
-<li><a href="#quick-start">Quick start</a></li>
+<li><a href="#tutorial-quick-start">Quick start</a></li>
+<li><a href="#tutorial-custom-protocol">Define custom protocol</a></li>
+</ul>
+</li>
 <li>
-<a href="#protocol">Magik ACP -&gt; goworld worker Protocol</a>
+<a href="#protocol">Protocol</a>
 
 <ul>
-<li><a href="#list-protocol">List protocol</a></li>
-<li>
-<a href="#find-protocol">Find protocol</a><br>
-</li>
+<li><a href="#protocol-list">List protocol</a></li>
+<li><a href="#protocol-custom">Custom protocol</a></li>
 </ul>
 </li>
 <li><a href="#stop">Stop</a></li>
-</ul>
-</li>
-<li><a href="#limitations">Limitations</a></li>
 </ul>
 
 <hr>
@@ -87,17 +93,26 @@
 <li>Many workers on single Smallworld session</li>
 </ul>
 
+<p></p><div id="config"></div>
+
+<h2>
+<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuration</h2>
+
 <p></p><div id="config-file"></div>
 
 <h3>
-<a id="config-file" class="anchor" href="#config-file" aria-hidden="true"><span class="octicon octicon-link"></span></a>Config file</h3>
+<a id="configuration-file" class="anchor" href="#configuration-file" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuration file</h3>
 
 <p>Config file is a simple JSON file.</p>
 
 <pre><code>
 {
     "server": {
-        "port": Number
+        "port": Number,
+        "protocols": 
+            [
+            ...
+            ]
     },
     "workers": [
         {
@@ -106,8 +121,7 @@
             "name": String
         },
     ...
-    ...
-    ...
+
     ]
 }
 </code></pre>
@@ -115,6 +129,8 @@
 <p><code>server</code> - HTTP server configuration</p>
 
 <p><code>server.port</code> - HTTP server port number </p>
+
+<p><code>server.protocols</code> - list of protocols definitions. See <a href="#protocol">Protocols</a></p>
 
 <p><code>workers</code> - list of workers configuration obejcts</p>
 
@@ -124,16 +140,56 @@
 
 <p><code>worker.name</code> - unique name of worker. This will be also used as a APC process name</p>
 
-<hr>
+<p></p><div id="config-list-protocol"></div>
+
+<h3>
+<a id="list-protocol" class="anchor" href="#list-protocol" aria-hidden="true"><span class="octicon octicon-link"></span></a>List protocol</h3>
+
+<p>This is preconfigured protocol described in <a href="#tutorial-quick-start">quick start</a>.
+To disable this protocol set <code>false</code> in enabled attribute, or remove whole JSON object from configuration file. 
+    </p><pre><code>
+     {
+      "name": "list",
+      "enabled": bool
+    },
+    </code></pre>
+
+<p></p><div id="config-custom-protocol"></div>
+
+<h3>
+<a id="custom-protocol" class="anchor" href="#custom-protocol" aria-hidden="true"><span class="octicon octicon-link"></span></a>Custom protocol</h3>
+
+<p>To define custom protocol you need to configure definition in configuration file.
+Configuration:
+    </p><pre><code>
+     {
+      "name": string,
+      "enabled": bool,
+      "params": [
+        {
+          "name": string,
+          "type": string
+        }
+        ...
+      ],
+      "results": [
+        {
+          "name": string,
+          "type": string
+        }
+        ...
+      ]
+    },
+    </code></pre>
 
 <p></p><div id="download"></div>
 
 <h2>
 <a id="downloads" class="anchor" href="#downloads" aria-hidden="true"><span class="octicon octicon-link"></span></a>Downloads</h2>
 
-<p><a href="https://sourceforge.net/projects/goworld/files/?source=navbar">Binaries</a></p>
+<p><a href="https://sourceforge.net/projects/goworld/files/?source=navbar">Binaries download</a></p>
 
-<p><a href="https://github.com/kpawlik/goworld">Source</a></p>
+<p><a href="https://github.com/kpawlik/goworld">Source download</a></p>
 
 <p></p><div id="build"></div>
 
@@ -161,43 +217,48 @@
 
 <p><code>go build main.go -o c:\tmp\goworld.exe</code></p>
 
-<hr>
-
 <p></p><div id="tutorial"></div>
 
 <h2>
 <a id="tutorial" class="anchor" href="#tutorial" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tutorial</h2>
 
-<p></p><div id="quick-start"></div>
+<p></p><div id="tutorial-quick-start"></div>
 
 <h3>
 <a id="quick-start" class="anchor" href="#quick-start" aria-hidden="true"><span class="octicon octicon-link"></span></a>Quick start</h3>
 
-<p>This example is for Windows, but this works the same way for Linux</p>
+<p>This example is for Windows, but this works the same way for Linux. This quick start example shows 
+how to run <code>goworld</code> with example <code>list</code> protocol, which just lists fields from Smallworld objects.</p>
 
 <ul>
 <li><p>Download appropriate executable file to <code>C:\tmp\</code></p></li>
-<li><p>Create JSON config file c:\tmp\goworld.json</p></li>
-</ul>
+<li>
+<p>Create JSON config file c:\tmp\goworld.json</p>
 
 <pre><code>
 {
-    "server": {
-        "port": 4000
-    },
-    "workers": [{
-        "port": 4002,
-        "host": "localhost",
-        "name": "w1"
-    }, {
-        "port": 4001,
-        "host": "localhost",
-        "name": "w2"
-    }]
+"server": {
+    "port": 4000,
+    "protocols": 
+        [
+            {
+                "name": "list",
+                "enabled": true
+            }
+        ]
+},
+"workers": [{
+    "port": 4002,
+    "host": "localhost",
+    "name": "w1"
+}, {
+    "port": 4001,
+    "host": "localhost",
+    "name": "w2"
+}]
 }
 </code></pre>
-
-<ul>
+</li>
 <li><p>load Magik source file <code>goworld.magik</code> from <code>magik</code> folder into the Smallworld session</p></li>
 <li>
 <p>in the Smallworld console type: </p>
@@ -238,49 +299,134 @@ http://localhost:4000/list/gis/hotel/100/id/name/address1/address2
 </code></pre>
 
 <p>application will display list 100 (or less if size of collection is less then 100) of JSON object eg.</p>
-</li>
-</ul>
 
 <pre><code>
 [
-    {
-        "address1": "154 Palad Road",
-        "address2": "Wyoming",
-        "id": "condition(does_not_understand: Object hotel133:(AAA Guest House) does not understand message id)",
-        "name": "AAA Guest House"
-    },
-    {
-        "address1": "219 Pinguin Road",
-        "address2": "Miami",
-        "id": "condition(does_not_understand: Object hotel133:(All 5 Seasons) does not understand message id)",
-        "name": "All 5 Seasons"
-    },
-    ...
-    ...
-    ...
+{
+    "address1": "154 Palad Road",
+    "address2": "Wyoming",
+    "id": "condition(does_not_understand: Object hotel133:(AAA Guest House) does not understand message id)",
+    "name": "AAA Guest House"
+},
+{
+    "address1": "219 Pinguin Road",
+    "address2": "Miami",
+    "id": "condition(does_not_understand: Object hotel133:(All 5 Seasons) does not understand message id)",
+    "name": "All 5 Seasons"
+},
+...
+...
+...
 ]
 </code></pre>
+</li>
+</ul>
+
+<p></p><div id="tutorial-custom-protocol"></div>
+
+<h3>
+<a id="define-custom-protocol" class="anchor" href="#define-custom-protocol" aria-hidden="true"><span class="octicon octicon-link"></span></a>Define custom protocol</h3>
+
+<ol>
+<li>
+<p>Get config file from <a href="#tutorial-quick-start">quick start</a>. Add new protocol definition with name <code>find_hotel</code></p>
+
+<pre><code>
+...
+"protocols": [
+    {
+        "name": "find_hotel",
+        "enabled": true,
+        "params": [
+            {
+                "name": "name",
+                "type": "chars"
+            }
+        ],
+        "results": [
+            {
+                "name": "address_1",
+                "type": "chars"
+            },
+            {
+                "name": "address_2",
+                "type": "chars"
+            },
+            {
+                "name": "x",
+                "type": "float"
+            },
+            {
+                "name": "y",
+                "type": "float"
+            }
+        ]
+    }
+],
+...
+</code></pre>
+</li>
+<li>
+<p>Create new Magik method in class goworld, this method will handle new protocol</p>
+
+<pre><code>
+_method goworld.find_hotel_protocol()
+## 
+## 
+    !print_float_precision! </code></pre>
+</li>
+<li>
+<p>Register method with protocol name. Name must be the same as in config file:</p>
+
+<p></p>
+<pre><code>
+goworld.register_protocol("find_hotel", :|find_hotel_protocol()|)
+$</code></pre>
+</li>
+<li>
+<p>Start goworld worker:</p>
+
+<pre><code>
+start_goworld_worker("w1", "c:\tmp\goworld.exe", "c:\tmp\goworld.json", "c:\tmp\w1.log")
+$
+</code></pre>
+</li>
+<li>
+<p>Start HTTP server</p>
+
+<pre><code>
+c:\tmp\goworld.exe -t http -c c:\tmp\goworld.json
+</code></pre>
+</li>
+<li>
+<p>In browser type:</p>
+
+<pre><code>
+http://localhost:4000/find_hotel/[HOTEL_NAME]
+</code></pre>
+</li>
+</ol>
 
 <p></p><div id="protocol"></div>
 
-<h3>
-<a id="magik-acp---goworld-worker-protocol" class="anchor" href="#magik-acp---goworld-worker-protocol" aria-hidden="true"><span class="octicon octicon-link"></span></a>Magik ACP -&gt; goworld worker Protocol</h3>
+<h2>
+<a id="protocols" class="anchor" href="#protocols" aria-hidden="true"><span class="octicon octicon-link"></span></a>Protocols</h2>
 
 <p>Prototcol means the way how magik Acp and goworld worker are communicate.</p>
 
-<p></p><div id="list-protocol"></div>
+<p></p><div id="protocol-list"></div>
 
-<h4>
-<a id="list-protocol" class="anchor" href="#list-protocol" aria-hidden="true"><span class="octicon octicon-link"></span></a>List protocol</h4>
+<h3>
+<a id="list-protocol-1" class="anchor" href="#list-protocol-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>List protocol</h3>
 
 <p>List protocol starts with <code>list</code> prefix eg.</p>
 
 <p><code>http://localhost:4000/list/gis/hotel/100/id/name/address1</code></p>
 
-<p>Request:
+<p>Request structure:
 <code>http://[HOST]:[PORT]/list/[DATASET]/[COLLECTION]/[LIMIT, 0 = ALL]/[LIST OF FIELDS SEPARATED BY "/"]</code>`</p>
 
-<p>Returns a list of JSON objects, each JSON object contain LIST OF FIELDS and VALUES from COLLECTION. Number of objects is limited by LIMIT or size of COLLECTION.
+<p>Protocol returns a list of JSON objects, each JSON object contain LIST OF FIELDS and VALUES from COLLECTION. Number of objects is limited by LIMIT or size of COLLECTION.
 If DATASET or COLLECTION doesn not exists, error message is returned. If field does not exists error is returned as a field value.</p>
 
 <p>Communication:</p>
@@ -298,11 +444,14 @@ _local path </code></pre>
 
 <ul>
 <li>
-<code>0</code> means <code>OK</code>, no error
+<code>0</code> means <code>OK</code>, no error</li>
+</ul>
+
 <pre><code>
 _self.put_unsigned_byte(0)
 </code></pre>
-</li>
+
+<ul>
 <li>
 <code>&gt; 0</code> means error (no such dataset, no access). In this case as a next message magik need to send string with error message
 <pre><code>
@@ -339,28 +488,45 @@ _self.flush()
 </li>
 </ol>
 
-<p></p><div id="find-protocol"></div>
+<p></p><div id="protocol-custom"></div>
 
-<h4>
-<a id="find-protocol" class="anchor" href="#find-protocol" aria-hidden="true"><span class="octicon octicon-link"></span></a>Find protocol</h4>
+<h3>
+<a id="custom-protocol-1" class="anchor" href="#custom-protocol-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Custom protocol</h3>
 
-<p>soon</p>
+<p>To define custom prototcol you need to:</p>
+
+<ol>
+<li>Define protocol in config file.
+
+<ol>
+<li>Protocol name</li>
+<li>enabled flag</li>
+<li>List of entry parameters</li>
+<li>List of result fields</li>
+</ol>
+</li>
+<li>Create magik method which will handle protocol on Smallworld side. This method need to:
+
+<ol>
+<li>Receive all parameters defined in config file</li>
+<li>Send sucess code, or error code and error message</li>
+<li>Send number of records to send</li>
+<li>In loop, send fields which are defined in config file</li>
+</ol>
+</li>
+<li>Register magik method with protocol name</li>
+</ol>
+
+<p>See example in <a href="#tutorial-custom-protocol">tutotrial</a>.</p>
 
 <p></p><div id="stop"></div>
 
-<h3>
-<a id="stop" class="anchor" href="#stop" aria-hidden="true"><span class="octicon octicon-link"></span></a>Stop</h3>
+<h2>
+<a id="stop" class="anchor" href="#stop" aria-hidden="true"><span class="octicon octicon-link"></span></a>Stop</h2>
 
 <p>To stop just open system Task Manager and kill all <code>goworld</code> processes.</p>
 
 <hr>
-
-<p></p><div id="limitations"></div>
-
-<h3>
-<a id="limitations" class="anchor" href="#limitations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations</h3>
-
-<p>Currently JSON data are returned only as a {string: string}.</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/kpawlik/goworld">Goworld</a> is maintained by <a href="https://github.com/kpawlik">kpawlik</a>.</span>
