@@ -33,61 +33,83 @@ _method goworld_test.start()
 	_protect
 		_self.lock()
 		_loop
+			write("------")
+			_local bool << _self.get_boolean()
+			write("Bool 1", bool)
+			bool << _not bool
+			_self.put_boolean(bool)
+			_self.flush()
+
+			bool << _self.get_boolean()
+			write("Bool 2", bool)
+			bool << _not bool
+			_self.put_boolean(bool)
+			_self.flush()
+			
 			_local ubyte << _self.get_unsigned_byte()
 			write("Ubyte ", ubyte)
 			ubyte +<< 1
 			_self.put_unsigned_byte(ubyte)
-
+			_self.flush()
+			
 			_local byte << _self.get_signed_byte()
 			write("Byte ", byte)
 			byte +<< 1
 			_self.put_signed_byte(byte)
+			_self.flush()
 			
 			_local ushort << _self.get_unsigned_short()
 			write("Ushort ", ushort)
 			ushort +<< 1
 			_self.put_unsigned_short(ushort)
-
+			_self.flush()
+			
 			_local short << _self.get_signed_short()
 			write("Short ", short)
 			short +<< 1
 			_self.put_signed_short(short)
-			
+			_self.flush()
+						
 			_local uint << _self.get_unsigned_int()
 			write("UInt ", uint)			
 			uint +<< 1
 			_self.put_unsigned_int(uint)
-
+			_self.flush()
+			
 			_local int << _self.get_signed_int()
 			write("Int ", int)			
 			int +<< 1
 			_self.put_signed_int(int)
-			
+			_self.flush()
 			
 			_local ulong << _self.get_unsigned_long()
 			write("Ulong ", ulong)			
 			ulong +<< 1
 			_self.put_unsigned_long(ulong)
-
+			_self.flush()
+			
 			_local long << _self.get_signed_long()
 			write("Int ", long)			
 			long +<< 1
 			_self.put_signed_long(long)
-
+			_self.flush()
+			
 			_local sfl << _self.get_short_float()
 			write("short float: ", sfl)
 			sfl +<< 1
 			_self.put_short_float(sfl)
+			_self.flush()
 			
 			_local fl << _self.get_float()
 			write("float: ", fl)
 			fl +<< 1
 			_self.put_float(fl)
-
+			_self.flush()
+			
 			_local str << _self.get_chars()
 			write("chars: ", str)
 			_self.put_chars(str)
-			
+			_self.flush()
 			
 		_endloop
 	_protection
@@ -116,3 +138,7 @@ _global start_goworld_test_worker << _proc(name, exe, conf, log)
 							  _endproc.fork_at(light_thread.vm_priority - 1)
 			 _endproc 
 $
+
+
+
+

@@ -5,24 +5,6 @@ import (
 	"log"
 )
 
-// GetDemoResponse returns response object from worker
-func (t *Worker) GetDemoResponse(request *Request, resp *Response) error {
-
-	defer func() {
-		if err := recover(); err != nil {
-			log.Panic("PANIC ", err)
-		}
-	}()
-	path := request.Path
-	log.Printf("Handle path: %s\n", path)
-	body := []BodyElement{}
-	m := make(BodyElement)
-	m[t.WorkerName] = path
-	body = append(body, m)
-	resp.Body = body
-	return nil
-}
-
 // GetTestResponse returns response object from worker
 func (t *Worker) GetTestResponse(request *Request, resp *Response) error {
 	var (

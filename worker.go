@@ -31,10 +31,9 @@ func StartWorker(config *Config, name string, mode WorkMode) {
 	}
 	// start ACP
 	acp = NewAcp(name)
-	if mode != DemoMode {
-		if err := acp.Connect(name, 0, 1); err != nil {
-			log.Panicf("ACP Connection error: %v\n", err)
-		}
+
+	if err := acp.Connect(name, 0, 1); err != nil {
+		log.Panicf("ACP Connection error: %v\n", err)
 	}
 	// register worker for RPC server
 	worker := &Worker{
@@ -74,9 +73,8 @@ func (w *Worker) ListObjectsFields(request *Request, resp *Response) error {
 	acp.PutString(request.Protocol.Name)
 	// send path
 	acp.PutString(request.Path)
-
 	// get status
-	if ok, err := w.chackStatus(); !ok {
+	if err := w.checkAcpStatus(); err != nil {
 		resp.Error = err
 		return nil
 	}
@@ -101,7 +99,6 @@ func (w *Worker) Custom(request *Request, resp *Response) (err error) {
 	var (
 		bodyElem BodyElement
 		acpErr   *AcpErr
-		ok       bool
 	)
 	protocol := request.Protocol
 	pathParams := strings.Split(request.Path, "/")
@@ -112,12 +109,12 @@ func (w *Worker) Custom(request *Request, resp *Response) (err error) {
 	// send protocol name to ACP
 	acp.PutString(protocol.Name)
 	// Send all param name and value to ACP
-	if acpErr = w.sendParameters(protocol, pathParams); err != nil {
+	if acpErr = w.sendParameters(protocol, pathParams); acpErr != nil {
 		resp.Error = acpErr
 		return
 	}
 	// get status
-	if ok, acpErr = w.chackStatus(); !ok {
+	if acpErr = w.checkAcpStatus(); acpErr != nil {
 		resp.Error = acpErr
 		return
 	}
@@ -137,13 +134,13 @@ func (w *Worker) Custom(request *Request, resp *Response) (err error) {
 	return
 }
 
-// chackStatus checks if ACP returns valid sucess status. If not then read error message and create error object
-func (w *Worker) chackStatus() (bool, *AcpErr) {
+// chackAcpStatus checks if ACP returns valid sucess status. If not then read error message and create error object
+func (w *Worker) checkAcpStatus() *AcpErr {
 	status := acp.GetUbyte()
 	if status != SucessStatus {
-		return false, NewAcpErr(fmt.Sprintf("Status error from ACP: Code %d. Message: %s", status, acp.GetString()))
+		return NewAcpErr(fmt.Sprintf("Status error from ACP: Code %d. Message: %s", status, acp.GetString()))
 	}
-	return true, nil
+	return nil
 }
 
 //sendParameters sends list of parameters from request to ACP

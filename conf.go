@@ -15,13 +15,11 @@ const (
 	UnknownMode WorkMode = iota
 	// NormalMode is production mode
 	NormalMode
-	// DemoMode demonstration mode for test only
-	DemoMode
 	// TestMode  to test communication between Acp and worker
 	TestMode
 )
 
-var modes = map[WorkMode]string{NormalMode: "normal", DemoMode: "demo", TestMode: "test"}
+var modes = map[WorkMode]string{NormalMode: "normal", TestMode: "test"}
 
 func (w WorkMode) String() string {
 	return modes[w]

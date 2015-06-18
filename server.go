@@ -12,10 +12,6 @@ import (
 )
 
 var (
-	requestNames = map[WorkMode]string{
-		DemoMode: "Worker.GetDemoResponse",
-		TestMode: "Worker.GetTestResponse"}
-
 	pathToReques = map[string]string{
 		"list":   "Worker.ListObjectsFields",
 		"custom": "Worker.Custom",
@@ -62,23 +58,22 @@ func initWorkersConnections(workersDef []*WorkerConf) (onlineWorkers workerChan,
 	workersNo := len(workersDef)
 	onlineWorkers = make(workerChan, workersNo)
 	offlineWorkers = make(workerChan, workersNo)
-	connectedWorkersNo := 0
+
 	for _, workerDef := range workersDef {
 		conn, err := rpc.DialHTTP("tcp", fmt.Sprintf("%s:%d", workerDef.Host, workerDef.Port))
 		if err != nil {
-			worker := &WorkerConnection{Host: workerDef.Host,
+			// add to online pool
+			offlineWorkers <- &WorkerConnection{Host: workerDef.Host,
 				Port: workerDef.Port,
 				Name: workerDef.Name}
-			offlineWorkers <- worker
 			continue
 		}
-		log.Printf("Worker %s (%s:%d), CONNECTED \n", workerDef.Name, workerDef.Host, workerDef.Port)
-		connectedWorkersNo++
-		worker := &WorkerConnection{Host: workerDef.Host,
+		// add to offline pool
+		onlineWorkers <- &WorkerConnection{Host: workerDef.Host,
 			Port: workerDef.Port,
 			Name: workerDef.Name,
 			Conn: conn}
-		onlineWorkers <- worker
+		log.Printf("Worker %s (%s:%d), CONNECTED \n", workerDef.Name, workerDef.Host, workerDef.Port)
 	}
 	return
 }
@@ -119,44 +114,63 @@ type ReqHandler struct {
 
 // getProtocolConf return protocol definition with name which should be
 // first part of path
-func (t *ReqHandler) getProtocolConf(path string) *ProtocolConf {
-	res := strings.Split(path, "/")
-	if len(res) == 0 {
-		return nil
+func (r *ReqHandler) getProtocolConf(protocolName string) *ProtocolConf {
+	return r.Config.GetProtocolDef(protocolName)
+}
+
+func (r *ReqHandler) getRequestFunctionName(protocolName string) (string, bool) {
+	if r.WorkMode == TestMode {
+		return "Worker.GetTestResponse", true
 	}
-	return t.Config.GetProtocolDef(res[0])
+	if protocolName != "list" {
+		protocolName = "custom"
+	}
+	reqFucn, ok := pathToReques[protocolName]
+	return reqFucn, ok
+
+}
+func (r *ReqHandler) checkProtocolConf(protocolConf *ProtocolConf) bool {
+	if protocolConf == nil || !protocolConf.Enabled {
+		return false
+	}
+	return true
+}
+
+func (r *ReqHandler) writeErrorStatus(w http.ResponseWriter, status int) {
+	var message string
+	switch status {
+	case http.StatusMethodNotAllowed:
+		message = "Unsupported protocol"
+	case http.StatusUnauthorized:
+		message = "Unauthorized protocol"
+	}
+	w.WriteHeader(status)
+	fmt.Fprintf(w, message)
 }
 
 // parsePath parse string parameter depend of which WorkMode has been selected.
 // In case of NormalMode first part of path depends which Request method will be called.
-func (t *ReqHandler) parsePath(path string) (processedPath, requestFunc string, ok bool) {
-	path, _ = url.QueryUnescape(path)
-	if t.WorkMode != NormalMode {
-		// demo and test
-		requestFunc, ok = requestNames[t.WorkMode]
-		processedPath = path
-		return
+func (r *ReqHandler) parsePath(path string) (protocolName, processedPath string, ok bool) {
+	var (
+		res []string
+		err error
+	)
+	if path, err = url.QueryUnescape(path); err != nil {
+		log.Printf("Error unescape path: %v\n", err)
 	}
-	res := strings.Split(path, "/")
-	if len(res) == 0 {
-		ok = false
-		return
+	res = strings.Split(path, "/")
+	if ok = len(res) > 0; ok {
+		processedPath = strings.Join(res[1:], "/")
+		protocolName = res[0]
 	}
-	processedPath = strings.Join(res[1:], "/")
-	protocolName := res[0]
-	switch protocolName {
-	case "list":
-		requestFunc, ok = pathToReques[protocolName]
-		return
-	}
-	requestFunc, ok = pathToReques["custom"]
 	return
 }
 
 // ServeHTTP is http request handler.
-func (t *ReqHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (r *ReqHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
 		path, requestFuncName string
+		protocolName          string
 		ok                    bool
 	)
 	defer func() {
@@ -164,42 +178,44 @@ func (t *ReqHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Panicf("PANIC: %v\n", err)
 		}
 	}()
-	path = r.URL.Path[1:]
-	protocolConf := t.getProtocolConf(path)
-	if protocolConf == nil || !protocolConf.Enabled {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprintf(w, "Unauthorized protocol\n")
+	start := time.Now()
+	path = req.URL.Path[1:]
+	if protocolName, path, ok = r.parsePath(path); !ok {
+		r.writeErrorStatus(w, http.StatusMethodNotAllowed)
 		return
 	}
-	path, requestFuncName, ok = t.parsePath(path)
-	if !ok {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(w, "Unsupported protocol")
+	if requestFuncName, ok = r.getRequestFunctionName(protocolName); !ok {
+		r.writeErrorStatus(w, http.StatusMethodNotAllowed)
 		return
 	}
+	protocolConf := r.getProtocolConf(protocolName)
+	if !r.checkProtocolConf(protocolConf) {
+		r.writeErrorStatus(w, http.StatusUnauthorized)
+		return
+	}
+
 	response := &Response{}
 	request := &Request{
 		Path:     path,
 		Protocol: protocolConf}
-	// get free worker
 	for {
-		worker := <-t.Online
+		// get free worker from online pool
+		worker := <-r.Online
 		conn := worker.Conn
-		if err := conn.Call(requestFuncName, request, &response); err != nil {
+		if err := conn.Call(requestFuncName, request, &response); err == nil {
+			// return worker to the online pool
+			r.Online <- worker
+			break
+		} else {
 			log.Printf("ERROR: Response from worker %s, code: %d. Remote procedure call: %s\n",
 				worker.Name, http.StatusInternalServerError, err)
-			// add worker to the offline pool
-			t.Offline <- worker
-		} else {
-			// return worker to the online pool
-			t.Online <- worker
-			break
+			// add worker to the offline pool and get next worker from online pool. dont break
+			r.Offline <- worker
 		}
 	}
 	if response.Error != nil {
 		fmt.Fprintf(w, "%v", response.Error)
 		return
-
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -207,4 +223,5 @@ func (t *ReqHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := enc.Encode(response.Body); err != nil {
 		log.Printf("Error Encode response body: %s\n", err)
 	}
+	log.Printf("Request. Protocol: '%s', Params: '%s', Processed in %v\n", protocolName, path, time.Now().Sub(start))
 }

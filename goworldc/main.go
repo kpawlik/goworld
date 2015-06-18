@@ -31,7 +31,7 @@ func init() {
 	flag.StringVar(&configFilePath, "c", "", "path to config file")
 	flag.StringVar(&serverType, "t", "", "Server type [worker, http]")
 	flag.StringVar(&logFile, "l", "", "logfile")
-	flag.StringVar(&mode, "m", "normal", "Work mode for test and debug [normal(default), demo, test]")
+	flag.StringVar(&mode, "m", "normal", "Work mode for test and debug [normal(default), test]")
 	flag.Parse()
 	if serverType == "" || configFilePath == "" {
 		flag.Usage()
@@ -87,6 +87,7 @@ func main() {
 		startWorkerServer(config, workMode)
 	}
 }
+
 func startWorkerServer(config *goworld.Config, workMode goworld.WorkMode) {
 	goworld.StartWorker(config, processName, workMode)
 }

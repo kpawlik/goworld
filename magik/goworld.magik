@@ -93,7 +93,7 @@ _method goworld.start()
 			_local method_name << _self.protocols[protocol_name]
 			_if method_name _is _unset 
 			_then 
-				_self.send_error(1, "Magik side. Unknown protocol")
+				_self.send_error_message(1, "Magik side. Unknown protocol")
 				_return
 			_endif 
 			_self.perform(method_name)
@@ -115,7 +115,7 @@ _method goworld.list_protocol()
 		_local vars << rope.new_from(path.split_by("/"))
 		_if vars.size < 3
 		_then
-			_self.send_error(1, "No dataset, collection of field")
+			_self.send_error_message(1, "No dataset, collection of field")
 			_return
 		_endif
 		_local dataset_name << vars.remove_first().as_symbol()
@@ -125,19 +125,19 @@ _method goworld.list_protocol()
 		_local ds << gis_program_manager.databases[dataset_name]
 		_if ds _is _unset
 		_then
-			_self.send_error(1, write_string("Dataset ", dataset_name, " does not exists"))
+			_self.send_error_message(1, write_string("Dataset ", dataset_name, " does not exists"))
 			_return 
 		_endif 
 		_local collection << ds.collections[collection_name]
 		_if collection _is _unset
 		_then
-			_self.send_error(write_string("Collection ", collection_name, " does not exists"))
+			_self.send_error_message(1, write_string("Collection ", collection_name, " does not exists"))
 			_return 
 		_endif
 		records_to_get << integer.from_write_string(records_to_get)
 		_if records_to_get _is _unset
 		_then
-			_self.send_error(1, "Invalid records number")
+			_self.send_error_message(1, "Invalid records number")
 			_return 
 		_endif
 		_self.send_success_status()
