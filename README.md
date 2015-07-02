@@ -39,7 +39,7 @@ This is a simple application which shows how data from Smallworld can be accesse
 
 - Zero instalation
 - One executable, one Magik file
-- Siple, light and fast
+- Simple, light, fast and scalable
 - Linux/Windows support
 - One simple config file
 - Scalable - multiple ACP workers -> one concurrency HTTP server
