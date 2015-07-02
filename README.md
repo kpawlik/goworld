@@ -13,7 +13,7 @@ Aplication which allows to access Smallworld data as JSON via HTTP
   - [Configuration file](#config-file)
   - [List protocol](#config-list-protocol)
   - [Custom protocol](#config-custom-protocol)
-- [Downloads](#download)
+- [Download binaries and source](#download)
 - [Build from sources](#build)
 - [Start HTTP Server and Worker](#starting)
   - [Start HTTP Server](#starting-http)
@@ -162,7 +162,7 @@ Supported types:
 
 
 <div id='download'/>
-## Downloads
+## Download binaries and source
 
 [Binaries download](https://sourceforge.net/projects/goworld/files/?source=navbar)
 
