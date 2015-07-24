@@ -13,7 +13,7 @@ Aplication which allows to access Smallworld data as JSON via HTTP
   - [Configuration file](#config-file)
   - [List protocol](#config-list-protocol)
   - [Custom protocol](#config-custom-protocol)
-- [Downloads](#download)
+- [Download binaries and source](#download)
 - [Build from sources](#build)
 - [Start HTTP Server and Worker](#starting)
   - [Start HTTP Server](#starting-http)
@@ -32,14 +32,16 @@ Aplication which allows to access Smallworld data as JSON via HTTP
 <div id='about'/>
 ## About
 
-This is a simple application which shows how data from Smallworld can be accessed via HTTP in JSON format. Goworld is composed of set of concurrent workers and one HTTP server. Worker communicates with Smallworld session via ACP protocol. HTTP server and workers communicates via RPC protocol. HTTP server publish data from workers as JSON.
+This is an application to get data from Smallworld via HTTP in JSON format. Goworld is composed of set of concurrent workers and one HTTP server. 
+Worker communicates with Smallworld session via ACP protocol. 
+HTTP server and workers communicates via RPC protocol. 
 
 <div id='features'/>
 ### Features 
 
 - Zero instalation
-- One executable, one Magik file
-- Siple, light and fast
+- One executable file, one Magik file
+- Simple, light, fast and scalable
 - Linux/Windows support
 - One simple config file
 - Scalable - multiple ACP workers -> one concurrency HTTP server
@@ -94,22 +96,22 @@ Config file is a simple JSON file.
 ### List protocol
 
 This is predefined protocol described in [quick start](#tutorial-quick-start).
-To disable this protocol set `false` in enabled attribute, or remove whole JSON object from configuration file. 
+To disable this protocol set `false` for attribute `enabled`, or just remove JSON object from configuration file. 
 
 	```
 	protocols:
 	[
 		{
-    	  "name": "list",
-    	  "enabled": bool
-    	},
+    	  		"name": "list",
+    	  		"enabled": bool
+    		},
 	...
 	]
 	```
 
 <div id='config-custom-protocol'/>
 ### Custom protocol
-   To define custom protocol you need to configure definition in configuration file.
+   To define custom protocol you need to add protocol definition in configuration file.
 Configuration:
 
 	```
@@ -133,9 +135,9 @@ Configuration:
     },
 	```
 Definiton of custom protocol contains:
- - `name` - uniqe protocol name. This will be first part  of the HTTP Request
+ - `name` - uniqe protocol name. This will be first part of the HTTP Request
  - `enabled` - bool attribute, which allows to disable/enable protocol
- - `params` - list of Parameter objects (name and type). Parameters values should be pass in HTTP request after protocol name and should be separated by '/' char. Parameters will be converted to appropriate type and send to ACP.
+ - `params` - list of Parameter objects (name and type). Parameters values must be pass in request URL after protocol name and should be separated by '/' char. Parameters will be converted to appropriate type and send to ACP.
 
 	```
 	eg. 
@@ -160,7 +162,7 @@ Supported types:
 
 
 <div id='download'/>
-## Downloads
+## Download binaries and source
 
 [Binaries download](https://sourceforge.net/projects/goworld/files/?source=navbar)
 
@@ -193,13 +195,13 @@ go to `GOPATH/github.com/kpawlik/goworld/goworldc` run:
 <div id='starting-http'/>
 ### Start HTTP Server
 To start HTTP sever:
-  1. Create configuration file with `Server.port`, at least list protocol enbled and at least one worker definition.
+  1. Create configuration file with `Server.port`, at least `list` protocol enbled and at least one worker definition.
   1. Open command line terminal and type:
  
 	```
 	goworld.exe -t http -c [PATH TO CONFIG FILE]
 	```
-	HTTP server will start on defined port number, running workers from definition will be connected. Of you will start worker after you start HTTP server it will be also connected.
+	HTTP server will start on defined port number, running workers from definition will be connected. Workers can be start before or after you start HTTP.
 	
 <div id='starting-worker'/>
 ### Start Worker
