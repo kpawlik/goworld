@@ -118,6 +118,8 @@ func (r *ReqHandler) getProtocolConf(protocolName string) *ProtocolConf {
 	return r.Config.GetProtocolDef(protocolName)
 }
 
+// getRequestFunctionName return name of method which will handle RCP request.
+// Second return value is bool, which indicates if function name was found or not.
 func (r *ReqHandler) getRequestFunctionName(protocolName string) (string, bool) {
 	if r.WorkMode == TestMode {
 		return "Worker.GetTestResponse", true
@@ -129,13 +131,14 @@ func (r *ReqHandler) getRequestFunctionName(protocolName string) (string, bool) 
 	return reqFucn, ok
 
 }
+
+// checkProtocolConf returns true if protocol is valid and enabled
 func (r *ReqHandler) checkProtocolConf(protocolConf *ProtocolConf) bool {
-	if protocolConf == nil || !protocolConf.Enabled {
-		return false
-	}
-	return true
+	return protocolConf != nil && protocolConf.Enabled
+
 }
 
+//writeErrorStatus writes error on writter, error message depends on status value
 func (r *ReqHandler) writeErrorStatus(w http.ResponseWriter, status int) {
 	var message string
 	switch status {
@@ -180,10 +183,12 @@ func (r *ReqHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}()
 	start := time.Now()
 	path = req.URL.Path[1:]
+	// check path
 	if protocolName, path, ok = r.parsePath(path); !ok {
 		r.writeErrorStatus(w, http.StatusMethodNotAllowed)
 		return
 	}
+	// check request function name
 	if requestFuncName, ok = r.getRequestFunctionName(protocolName); !ok {
 		r.writeErrorStatus(w, http.StatusMethodNotAllowed)
 		return
@@ -193,7 +198,6 @@ func (r *ReqHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		r.writeErrorStatus(w, http.StatusUnauthorized)
 		return
 	}
-
 	response := &Response{}
 	request := &Request{
 		Path:     path,

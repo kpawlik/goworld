@@ -27,3 +27,5 @@ _testmain.go
 *.*~
 goworldc/goworldc
 goworldc/goworld
+*.zip
+goworldc/goworld.json

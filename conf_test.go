@@ -80,7 +80,7 @@ func TestReadConfig(t *testing.T) {
 
 func TestGetProtocol(t *testing.T) {
 	c, _ := unm()
-	if c.GetProtocol("list") == nil {
+	if c.GetProtocolDef("list") == nil {
 		t.Errorf("Error getting protocol list")
 	}
 }
