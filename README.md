@@ -56,7 +56,7 @@ HTTP server and workers communicates via RPC protocol.
 
 Config file is a simple JSON file.
 
-```json
+```
 {
     "server": {
         "port": Number,
@@ -97,7 +97,7 @@ Config file is a simple JSON file.
 This is predefined protocol described in [quick start](#tutorial-quick-start).
 To disable this protocol set `false` for attribute `enabled`, or just remove JSON object from configuration file. 
 
-	```json
+	```
 	protocols:
 	[
 		{
@@ -113,7 +113,7 @@ To disable this protocol set `false` for attribute `enabled`, or just remove JSO
    To define custom protocol you need to add protocol definition in configuration file.
 Configuration:
 
-	```json
+	```
 	 {
 	  "name": string,
 	  "enabled": bool,
@@ -294,7 +294,7 @@ how to run `goworld` with example `list` protocol, which just lists fields from 
 
    application will display list 100 (or less if size of collection is less then 100) of JSON object eg.
 
-  ```json
+  ```
   [
   	{
   		"address1": "154 Palad Road",
@@ -319,7 +319,7 @@ how to run `goworld` with example `list` protocol, which just lists fields from 
 ### Define custom protocol
 
 1. Create config file same as is described in [quick start](#tutorial-quick-start). Add new protocol definition with name `find_hotel`
-  ```josn
+  ```
   ...
   "protocols": [
   	{
@@ -361,8 +361,8 @@ how to run `goworld` with example `list` protocol, which just lists fields from 
   ## 
   	!print_float_precision! << 12
   	# This will get name from "params"
-      _local name << _self.get_chars()
-  	#send status
+      	_local name << _self.get_chars()
+  	# send status
   	_self.send_success_status()
   	_self.flush()
   	_local ds << gis_program_manager.databases[:gis]
